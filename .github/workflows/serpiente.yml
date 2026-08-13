@@ -1,0 +1,35 @@
+name: Serpiente de contribuciones
+
+# Genera el SVG animado del grafo de contribuciones y lo publica en la rama `output`.
+# Se mantiene solo: corre cada domingo y también a mano desde la pestaña Actions.
+
+on:
+  schedule:
+    - cron: "0 6 * * 0"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Generar el SVG
+        uses: Platane/snk@v3
+        id: snake
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            dist/snake.svg?palette=github-dark&color_snake=#30A46C&color_dots=#161B22,#0E4429,#1F8A55,#30A46C,#7BE38B
+            dist/snake-light.svg?color_snake=#1F8A55&color_dots=#EBEDF0,#C7E9D4,#7BC79A,#30A46C,#1F6F47
+
+      - name: Publicar en la rama output
+        uses: crazy-max/ghaction-github-pages@v4
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

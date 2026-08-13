@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="330" viewBox="0 0 1280 330" role="img" aria-label="Gerardo Barrera — construyo sistemas que verifican y que declaran lo que no saben">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="#161B22" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0D1117" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#0D1117" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0D1117" stop-opacity="1"/>
+    </linearGradient>
+    <clipPath id="typeClip">
+      <rect x="140" y="236" width="0" height="34">
+        <animate attributeName="width"
+                 values="0;675;675;0;0"
+                 keyTimes="0;0.32;0.965;0.97;1"
+                 dur="11s" repeatCount="indefinite"/>
+      </rect>
+    </clipPath>
+  </defs>
+
+  <rect width="1280" height="330" fill="#0D1117"/>
+  <rect width="1280" height="330" fill="url(#grid)"/>
+  <rect width="1280" height="330" fill="url(#fade)"/>
+
+  <!-- barra de severidad: GRAVE / OBSERVACION / NO_CALIFICA / CUMPLE -->
+  <g>
+    <rect x="72" y="58"  width="6" height="46" rx="3" fill="#E5484D"/>
+    <rect x="72" y="110" width="6" height="46" rx="3" fill="#F5A524"/>
+    <rect x="72" y="162" width="6" height="46" rx="3" fill="#7C8896"/>
+    <rect x="72" y="214" width="6" height="46" rx="3" fill="#30A46C"/>
+  </g>
+
+  <text x="110" y="106" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="52" fill="#E6EDF3" letter-spacing="4">
+    <tspan font-weight="200">GERARDO</tspan><tspan font-weight="700" dx="14">BARRERA</tspan>
+  </text>
+
+  <text x="112" y="146" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#8B949E" letter-spacing="0.4">
+    Construyo sistemas que verifican <tspan fill="#7C8896">—</tspan> y que declaran lo que no saben.
+  </text>
+
+  <text x="112" y="180" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="14" fill="#484F58" letter-spacing="2.6">
+    PYTHON · PIPELINE DETERMINISTA · IA ACOTADA POR CÓDIGO
+  </text>
+
+  <!-- consola -->
+  <rect x="110" y="206" width="762" height="72" rx="10" fill="#010409" stroke="#21262D" stroke-width="1"/>
+  <circle cx="132" cy="224" r="4" fill="#E5484D" opacity="0.7"/>
+  <circle cx="146" cy="224" r="4" fill="#F5A524" opacity="0.7"/>
+  <circle cx="160" cy="224" r="4" fill="#30A46C" opacity="0.7"/>
+
+  <g clip-path="url(#typeClip)">
+    <text x="140" y="258" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="17" xml:space="preserve">
+      <tspan fill="#30A46C">&#8250; </tspan><tspan fill="#C9D1D9">imagen_oscura: </tspan><tspan fill="#E5484D" font-weight="700">GRAVE</tspan><tspan fill="#C9D1D9"> — brillo=</tspan><tspan fill="#F5A524">31</tspan><tspan fill="#6E7681"> (mínimo: 40) </tspan><tspan fill="#C9D1D9">— fuente: </tspan><tspan fill="#30A46C" font-weight="700">CODIGO</tspan>
+    </text>
+  </g>
+
+  <rect y="240" width="9" height="22" fill="#30A46C">
+    <animate attributeName="x"
+             values="140;805;805;140;140"
+             keyTimes="0;0.32;0.965;0.97;1"
+             dur="11s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="1;0;1" dur="1.1s" repeatCount="indefinite"/>
+  </rect>
+
+  <text x="1170" y="300" text-anchor="end" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="12" fill="#3D444D" letter-spacing="1.6">
+    EL CÓDIGO DECIDE · EL MODELO INTERPRETA
+  </text>
+</svg>
