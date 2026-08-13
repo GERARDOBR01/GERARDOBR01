@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="48" viewBox="0 0 760 48" role="img" aria-label="Construyo sistemas que verifican · el código decide, el modelo interpreta · sin evidencia suficiente NO_CALIFICA · reloj suizo, no cohete espacial">
+  <defs>
+    <style>.l { font-family: Consolas,'SF Mono',Menlo,monospace; font-size: 20px; font-weight: 500; }</style>
+  </defs>
+
+  <text class="l" x="380" y="30" text-anchor="middle" fill="#30A46C" opacity="0">&#8250; Construyo sistemas que verifican<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.22;0.25;1" dur="18s" begin="0s" repeatCount="indefinite"/></text>
+
+  <text class="l" x="380" y="30" text-anchor="middle" fill="#30A46C" opacity="0">&#8250; El código decide, el modelo interpreta<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.22;0.25;1" dur="18s" begin="4.5s" repeatCount="indefinite"/></text>
+
+  <text class="l" x="380" y="30" text-anchor="middle" fill="#30A46C" opacity="0">&#8250; Sin evidencia suficiente &#8594; NO_CALIFICA<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.22;0.25;1" dur="18s" begin="9s" repeatCount="indefinite"/></text>
+
+  <text class="l" x="380" y="30" text-anchor="middle" fill="#30A46C" opacity="0">&#8250; Reloj suizo, no cohete espacial<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.22;0.25;1" dur="18s" begin="13.5s" repeatCount="indefinite"/></text>
+
+  <rect x="0" y="45" width="760" height="1.4" fill="#30A46C" opacity="0.16"/>
+  <rect x="0" y="45" width="0" height="1.4" fill="#30A46C" opacity="0.85">
+    <animate attributeName="width" values="0;760;0" keyTimes="0;0.5;1" dur="18s" repeatCount="indefinite"/>
+  </rect>
+</svg>

@@ -5,7 +5,7 @@
 </picture>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com/?lines=Construyo+sistemas+que+verifican;El+c%C3%B3digo+decide%2C+el+modelo+interpreta;Sin+evidencia+suficiente+%E2%86%92+NO_CALIFICA;Reloj+suizo%2C+no+cohete+espacial&font=Fira%20Code&weight=500&size=21&color=30A46C&center=true&vCenter=true&width=760&height=46&pause=1400" alt="Construyo sistemas que verifican · el código decide, el modelo interpreta · sin evidencia suficiente NO_CALIFICA · reloj suizo, no cohete espacial">
+  <img src="assets/lema.svg" alt="Construyo sistemas que verifican · el código decide, el modelo interpreta · sin evidencia suficiente NO_CALIFICA · reloj suizo, no cohete espacial" width="760">
 </p>
 
 <p align="center">
@@ -149,10 +149,7 @@ celular en la banqueta, antes de que arranque el camión.
 
 <img src="assets/divisor.svg" alt="" width="100%">
 
-<p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=GERARDOBR01&show_icons=true&include_all_commits=true&hide=stars,issues&hide_border=true&rank_icon=github&bg_color=0D1117&title_color=30A46C&text_color=8B949E&icon_color=F5A524&ring_color=30A46C" alt="Estadísticas de GitHub de Gerardo Barrera" height="165">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=GERARDOBR01&layout=compact&hide_border=true&langs_count=6&bg_color=0D1117&title_color=30A46C&text_color=8B949E" alt="Lenguajes más usados" height="165">
-</p>
+<img src="assets/ficha.svg" alt="4 módulos en el pipeline · 14/14 autotests · 3 dominios · 0 datos de cliente en repos públicos. Lenguajes: Python 89.1%, HTML 6.7%, JavaScript 4.1%" width="100%">
 
 <img src="assets/divisor.svg" alt="" width="100%">
 
