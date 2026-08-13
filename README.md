@@ -151,6 +151,12 @@ celular en la banqueta, antes de que arranque el camión.
 
 <img src="assets/ficha.svg" alt="4 módulos en el pipeline · 14/14 autotests · 3 dominios · 0 datos de cliente en repos públicos. Lenguajes: Python 89.1%, HTML 6.7%, JavaScript 4.1%" width="100%">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/GERARDOBR01/GERARDOBR01/output/snake.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/GERARDOBR01/GERARDOBR01/output/snake-light.svg">
+  <img src="https://raw.githubusercontent.com/GERARDOBR01/GERARDOBR01/output/snake.svg" alt="Serpiente recorriendo el grafo de contribuciones" width="100%">
+</picture>
+
 <img src="assets/divisor.svg" alt="" width="100%">
 
 ## Hablemos
