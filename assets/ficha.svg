@@ -15,11 +15,11 @@
   <text class="t" x="48"  y="108" font-size="26" font-weight="bold" fill="#30A46C">4</text>
   <text class="s" x="150" y="106" font-size="15" fill="#8B949E">módulos en el pipeline, en orden fijo — el modelo entra en uno</text>
 
-  <text class="t" x="48"  y="156" font-size="26" font-weight="bold" fill="#30A46C">14/14</text>
-  <text class="s" x="150" y="154" font-size="15" fill="#8B949E">autotests en verde, corriendo sin gastar una llamada de API</text>
+  <text class="t" x="48"  y="156" font-size="26" font-weight="bold" fill="#30A46C">11/11</text>
+  <text class="s" x="150" y="154" font-size="15" fill="#8B949E">bloques de la suite en verde, sin gastar una llamada de API</text>
 
   <text class="t" x="48"  y="204" font-size="26" font-weight="bold" fill="#F5A524">3</text>
-  <text class="s" x="150" y="202" font-size="15" fill="#8B949E">dominios distintos con la misma columna vertebral</text>
+  <text class="s" x="150" y="202" font-size="15" fill="#8B949E">dominios distintos — y un benchmark que publica dónde falla</text>
 
   <text class="t" x="48"  y="252" font-size="26" font-weight="bold" fill="#E5484D">0</text>
   <text class="s" x="150" y="250" font-size="15" fill="#8B949E">datos de cliente en repositorios públicos, ni en el historial</text>
