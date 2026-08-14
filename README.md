@@ -120,11 +120,11 @@ celular en la banqueta, antes de que arranque el camión.
 
 <tr>
 <td width="52%">
-  <a href="https://gerardobr01.github.io/asistente-de-piso/"><img src="assets/card-asistente.png" alt="El asistente de piso citando el manual en modo manual, sin modelo conectado" width="100%"></a>
+  <a href="https://gerardobr01.github.io/Visual_Lv-/"><img src="assets/card-asistente.png" alt="El asistente de piso citando el manual en modo manual, sin modelo conectado" width="100%"></a>
 </td>
 <td valign="top">
 
-### 💬 [Asistente de piso](https://github.com/GERARDOBR01/asistente-de-piso) · [demo en vivo](https://gerardobr01.github.io/asistente-de-piso/)
+### 💬 [Asistente de piso](https://github.com/GERARDOBR01/Visual_Lv-) · [demo en vivo](https://gerardobr01.github.io/Visual_Lv-/)
 
 **Retail · el estándar operativo, consultable**
 
