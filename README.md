@@ -38,7 +38,7 @@ cuando no hay evidencia suficiente el sistema **lo declara** en vez de adivinarl
 
 Lo probé primero en retail porque ahí trabajé tres años y conocía el problema a pie. Pero
 el motor no sabe de retail: sabe de **reglas, evidencia, severidad y trazabilidad**. Los
-tres proyectos de abajo son tres industrias distintas con la misma columna vertebral.
+proyectos de abajo cruzan retail, ventas y logística con la misma columna vertebral.
 
 Estudio Ingeniería en Software y Redes. Escribo mis commits en español.
 
@@ -114,6 +114,32 @@ que corre en vivo. Un solo archivo HTML: sin build, sin backend, sin red. Abre e
 celular en la banqueta, antes de que arranque el camión.
 
 `HTML` · `CSS` · `JavaScript`
+
+</td>
+</tr>
+
+<tr>
+<td width="52%">
+  <a href="https://gerardobr01.github.io/asistente-de-piso/"><img src="assets/card-asistente.png" alt="El asistente de piso citando el manual en modo manual, sin modelo conectado" width="100%"></a>
+</td>
+<td valign="top">
+
+### 💬 [Asistente de piso](https://github.com/GERARDOBR01/asistente-de-piso) · [demo en vivo](https://gerardobr01.github.io/asistente-de-piso/)
+
+**Retail · el estándar operativo, consultable**
+
+La otra mitad de Veristack: uno **verifica** el montaje con una foto, este ayuda a montarlo
+bien desde el principio.
+
+Sin API key no se calla ni finge: corre el retrieval en el propio teléfono y entrega la
+sección del manual **declarando que nadie la interpretó**. Si nada coincide, lo dice.
+
+```
+⚪ Sin modelo conectado.
+Coincidieron 3 secciones.
+```
+
+`HTML` · `JavaScript` · `Gemini` · `OpenAI`
 
 </td>
 </tr>
