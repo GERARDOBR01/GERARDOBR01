@@ -67,6 +67,10 @@ imagen_oscura: GRAVE — brillo=31
 (mínimo: 40) — fuente: CODIGO
 ```
 
+Y se **mide**: matriz de confusión contra un
+ground truth sintético, con los casos donde
+falla publicados en vez de escondidos.
+
 `Python` · `Streamlit` · `Gemini` · `Pillow`
 
 </td>
@@ -146,6 +150,9 @@ celular en la banqueta, antes de que arranque el camión.
   historial. Lo público es el motor; el conocimiento real vive fuera del árbol de git.
 - **La suite corre completa sin gastar una llamada de API**, porque una prueba que cuesta
   dinero es una prueba que se deja de correr.
+- **Publico dónde falla.** El benchmark de Veristack deja en rojo el caso que todavía no
+  resuelve bien, con su causa escrita. Un reporte donde todo sale verde casi siempre
+  significa que el set de pruebas no aprieta lo suficiente.
 
 <img src="assets/divisor.svg" alt="" width="100%">
 
