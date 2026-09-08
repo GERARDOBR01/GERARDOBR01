@@ -194,13 +194,12 @@ function vistaHoy() {
   const listaVencimientos = vencimientos.length
     ? `<div class="titulo-seccion">Por pagar</div><div class="tarjeta">${vencimientos
         .map(
-          (v) => `<div class="fila">
-            <div class="crece">
-              <div class="nombre">${esc(v.fijo.nombre)}</div>
-              <div class="sub">${v.vencido ? `venció hace ${Math.abs(v.dias)} día(s)` : v.dias === 0 ? "vence hoy" : `en ${v.dias} día(s)`} · ${fechaCorta(v.fecha)}</div>
+          (v) => `<div class="fila apilada">
+            <div class="linea"><div class="nombre">${esc(v.fijo.nombre)}</div><div class="monto">${monto(v.monto)}</div></div>
+            <div class="sub">${v.vencido ? `venció hace ${Math.abs(v.dias)} día(s)` : v.dias === 0 ? "vence hoy" : `en ${v.dias} día(s)`} · ${fechaCorta(v.fecha)}</div>
+            <div class="acciones-fila">
+              <button class="boton chico" data-accion="pagar-fijo" data-id="${esc(v.fijo.id)}" data-fecha="${esc(v.fecha)}">Pagué</button>
             </div>
-            <div class="monto">${monto(v.monto)}</div>
-            <button class="boton chico tenue" data-accion="pagar-fijo" data-id="${esc(v.fijo.id)}" data-fecha="${esc(v.fecha)}">Pagué</button>
           </div>`,
         )
         .join("")}</div>`
@@ -460,17 +459,20 @@ function vistaFijos() {
           const pagado = (datos.movimientos[mesDe(hoy)] || []).some((m) => m.fijoId === f.id);
           const deuda = f.deudaId ? datos.deudas.find((d) => d.id === f.deudaId) : null;
           const mensual = montoMensualizado(f);
-          return `<div class="fila">
-            <div class="crece"><div class="nombre">${esc(f.nombre)}</div>
-              <div class="sub">día ${f.diaCorte} · ${esc(comoFrecuencia(f))}${pagado ? " · pagado este mes" : ""}${
-                deuda ? ` · abona a ${esc(deuda.nombre)}` : ""
-              }${(f.frecuencia || 1) > 1 && mensual !== null ? ` · ${monto(mensual)} al mes` : ""}</div></div>
-            <div class="monto">${monto(f.monto)}</div>
-            ${!pagado && f.monto !== null && venceEnMes(f, mesDe(hoy))
-              ? `<button class="boton chico tenue" data-accion="pagar-fijo" data-id="${esc(f.id)}"
-                   data-fecha="${esc(vencimientoEnMes(mesDe(hoy), f.diaCorte))}">Pagué</button>`
-              : ""}
-            <button class="boton chico tenue" data-accion="editar-fijo" data-id="${esc(f.id)}">Editar</button>
+          // Dos líneas a propósito: en un teléfono, nombre + monto + dos botones en la misma
+          // fila deja el nombre partido a la mitad.
+          return `<div class="fila apilada">
+            <div class="linea"><div class="nombre">${esc(f.nombre)}</div><div class="monto">${monto(f.monto)}</div></div>
+            <div class="sub">día ${f.diaCorte} · ${esc(comoFrecuencia(f))}${pagado ? " · pagado este mes" : ""}${
+              deuda ? ` · abona a ${esc(deuda.nombre)}` : ""
+            }${(f.frecuencia || 1) > 1 && mensual !== null ? ` · ${monto(mensual)} al mes` : ""}</div>
+            <div class="acciones-fila">
+              ${!pagado && f.monto !== null && venceEnMes(f, mesDe(hoy))
+                ? `<button class="boton chico" data-accion="pagar-fijo" data-id="${esc(f.id)}"
+                     data-fecha="${esc(vencimientoEnMes(mesDe(hoy), f.diaCorte))}">Pagué</button>`
+                : ""}
+              <button class="boton chico tenue" data-accion="editar-fijo" data-id="${esc(f.id)}">Editar</button>
+            </div>
           </div>`;
         })
         .join("")

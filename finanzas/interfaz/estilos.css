@@ -223,3 +223,10 @@ input.monto { font-size: 30px; font-weight: 600; text-align: center; font-varian
 /* Una fila que se puede tocar para corregir lo que se capturó */
 .toque { background: none; border: 0; padding: 0; text-align: left; color: inherit; font: inherit; }
 .toque:active { opacity: .6; }
+
+/* Filas de dos líneas: en un teléfono, nombre + monto + botones en la misma línea
+   deja el nombre partido a la mitad. */
+.fila.apilada { display: block; }
+.fila.apilada .linea { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.fila.apilada .nombre { flex: 1; min-width: 0; }
+.fila.apilada .acciones-fila { display: flex; gap: 8px; justify-content: flex-end; margin-top: 9px; }
