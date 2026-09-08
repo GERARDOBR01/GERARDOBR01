@@ -132,6 +132,8 @@ const marcado = readFileSync(join(RAIZ, "interfaz/plantilla.html"), "utf8");
 const sello = new Date().toISOString().slice(0, 10);
 
 const DESCRIPCION_CORTA = "Ordena tu quincena y sabe si tus metas de ahorro alcanzan.";
+// Dónde vive publicada. Si cambia el repo, se cambia aquí y en ningún otro lado.
+const URL_PUBLICA = "https://gerardobr01.github.io/Quincena-/";
 const FONDO = "#14171A";
 const ACENTO = "#1f8a55";
 
@@ -270,7 +272,7 @@ const readmeApp = `# ${TITULO}
 
 ${DESCRIPCION}
 
-**[Abrir la app](https://gerardobr01.github.io/quincena/)** — y desde el celular, *Añadir a
+**[Abrir la app](${URL_PUBLICA})** — y desde el celular, *Añadir a
 pantalla de inicio* para que quede instalada con su ícono y abra sin conexión.
 
 ## Qué es

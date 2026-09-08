@@ -2,7 +2,7 @@
 
 Ordena tu quincena, controla tus gastos y sabe si tus metas de ahorro de verdad alcanzan.
 
-**[Abrir la app](https://gerardobr01.github.io/quincena/)** — y desde el celular, *Añadir a
+**[Abrir la app](https://gerardobr01.github.io/Quincena-/)** — y desde el celular, *Añadir a
 pantalla de inicio* para que quede instalada con su ícono y abra sin conexión.
 
 ## Qué es
