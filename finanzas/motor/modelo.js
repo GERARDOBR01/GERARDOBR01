@@ -13,7 +13,9 @@ import { hoyISO, mesDe, esISO } from "./ciclo.js";
 /** Versión del esquema. Sube de uno en uno, con su migración escrita. */
 export const VERSION_DATOS = 1;
 
-export const TIPOS = { GASTO: "gasto", INGRESO: "ingreso", AHORRO: "ahorro" };
+// AHORRO aparta dinero; RETIRO lo saca de vuelta. Sin RETIRO, sacar de una meta obligaba
+// a borrar el apartado original, y el historial acababa mintiendo sobre lo que pasó.
+export const TIPOS = { GASTO: "gasto", INGRESO: "ingreso", AHORRO: "ahorro", RETIRO: "retiro" };
 
 /** Catálogo inicial pensado para México. Son valores por defecto de la app, no datos suyos. */
 export const CATEGORIAS_BASE = [

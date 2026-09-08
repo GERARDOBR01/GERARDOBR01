@@ -68,7 +68,8 @@ export function gastoDelCiclo(datos, ciclo) {
   const fijo = suma(gastos, (m) => Boolean(m.fijoId));
   const variable = suma(gastos, (m) => !m.fijoId);
   const ahorrado = suma(movimientos, (m) => m.tipo === TIPOS.AHORRO);
-  return { total: fijo + variable, fijo, variable, ahorrado, movimientos: gastos.length };
+  const retirado = suma(movimientos, (m) => m.tipo === TIPOS.RETIRO);
+  return { total: fijo + variable, fijo, variable, ahorrado, retirado, movimientos: gastos.length };
 }
 
 /**
@@ -95,7 +96,7 @@ export function panelHoy(datos, iso) {
   }
 
   // Hecho: lo que queda del ciclo, ya descontando los fijos que todavía no se cobran.
-  const disponible = ingresos.monto - gasto.total - gasto.ahorrado - fijos.pendiente;
+  const disponible = ingresos.monto - gasto.total - (gasto.ahorrado - gasto.retirado) - fijos.pendiente;
   const porDia = ciclo.diasRestantes > 0 ? Math.trunc(disponible / ciclo.diasRestantes) : disponible;
 
   // Proyección: a este ritmo de gasto variable, ¿con cuánto cierro el ciclo?
@@ -185,15 +186,69 @@ export function capacidadPorCiclo(datos, iso, topesDelMes) {
   return { monto, ingreso, fijosCiclo, variableCiclo, ciclo, veredicto: nota };
 }
 
-/** Lo apartado históricamente: los movimientos de tipo ahorro. */
-export function ahorroAcumulado(datos, metaId = null) {
+/**
+ * Lo apartado históricamente, menos lo retirado.
+ * Con `metaId` cuenta solo esa meta; con `soloLibre` cuenta solo lo que NO está
+ * comprometido con ninguna meta — eso es el fondo de emergencia.
+ */
+export function ahorroAcumulado(datos, metaId = null, soloLibre = false) {
   let total = 0;
   for (const lista of Object.values(datos.movimientos)) {
     for (const m of lista) {
-      if (m.tipo !== TIPOS.AHORRO) continue;
+      if (m.tipo !== TIPOS.AHORRO && m.tipo !== TIPOS.RETIRO) continue;
       if (metaId && m.metaId !== metaId) continue;
-      total += m.monto;
+      if (soloLibre && m.metaId) continue;
+      total += m.tipo === TIPOS.AHORRO ? m.monto : -m.monto;
     }
   }
   return total;
+}
+
+/** El fondo de emergencia: lo apartado sin comprometer con ninguna meta. */
+export function ahorroLibre(datos) {
+  return ahorroAcumulado(datos, null, true);
+}
+
+/**
+ * El fondo de emergencia contra su objetivo.
+ * Sin objetivo definido no hay veredicto: se dice qué falta y cuánto suelen ser 3 meses
+ * de tus fijos, que sí es un número tuyo y no una regla inventada.
+ */
+export function estadoColchon(datos) {
+  const acumulado = ahorroLibre(datos);
+  const objetivo = datos.perfil.colchonObjetivo;
+
+  if (objetivo === null) {
+    return {
+      acumulado,
+      objetivo: null,
+      veredicto: sinDatos(
+        "no has definido cuánto quieres tener de fondo de emergencia",
+        "defínelo en Ajustes para saber si vas bien",
+      ),
+    };
+  }
+
+  const falta = Math.max(objetivo - acumulado, 0);
+  if (falta === 0) {
+    return {
+      acumulado,
+      objetivo,
+      falta: 0,
+      veredicto: veredicto(ESTADOS.VA_BIEN, SEVERIDADES.OK, "fondo completo", { acumulado, objetivo }),
+    };
+  }
+
+  const pct = Math.round((acumulado * 100) / objetivo);
+  return {
+    acumulado,
+    objetivo,
+    falta,
+    veredicto: veredicto(
+      ESTADOS.AJUSTADO,
+      pct >= 50 ? SEVERIDADES.MEDIA : SEVERIDADES.ALTA,
+      `llevas ${pct}% del fondo — faltan ${formatear(falta)}`,
+      { acumulado, objetivo, falta, pct },
+    ),
+  };
 }

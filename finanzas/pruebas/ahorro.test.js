@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { panelHoy, capacidadPorCiclo, ingresosDelCiclo, fijosDelCiclo, ahorroAcumulado, DIAS_MINIMOS_RITMO } from "../motor/ahorro.js";
+import {
+  panelHoy, capacidadPorCiclo, ingresosDelCiclo, fijosDelCiclo, ahorroAcumulado, ahorroLibre, estadoColchon, DIAS_MINIMOS_RITMO,
+} from "../motor/ahorro.js";
 import { topesVariables } from "../motor/presupuesto.js";
 import { cicloDe } from "../motor/ciclo.js";
 import { ESTADOS } from "../motor/veredicto.js";
@@ -127,4 +129,50 @@ test("el ahorro acumulado suma solo lo apartado", () => {
   ]);
   assert.equal(ahorroAcumulado(datos), 150000);
   assert.equal(ahorroAcumulado(datos, "meta_1"), 100000);
+});
+
+// --- Retiros y fondo de emergencia ---
+
+test("un retiro devuelve el dinero a lo disponible, sin borrar el apartado original", () => {
+  const base = datosDePrueba({ fijos: [] });
+  const apartado = conMovimientos(base, [{ fecha: "2026-09-02", monto: 200000, tipo: "ahorro" }]);
+  assert.equal(panelHoy(apartado, HOY).disponible, 600000, "800,000 − 200,000 apartados");
+
+  const conRetiro = conMovimientos(apartado, [{ fecha: "2026-09-04", monto: 50000, tipo: "retiro" }]);
+  assert.equal(panelHoy(conRetiro, HOY).disponible, 650000, "y el retiro vuelve a estar disponible");
+  assert.equal(conRetiro.movimientos["2026-09"].length, 2, "los dos movimientos quedan en el historial");
+});
+
+test("el ahorro acumulado descuenta lo retirado", () => {
+  const datos = conMovimientos(datosDePrueba(), [
+    { fecha: "2026-09-02", monto: 300000, tipo: "ahorro", metaId: "meta_1" },
+    { fecha: "2026-09-05", monto: 100000, tipo: "retiro", metaId: "meta_1" },
+    { fecha: "2026-09-06", monto: 80000, tipo: "ahorro" },
+  ]);
+  assert.equal(ahorroAcumulado(datos, "meta_1"), 200000);
+  assert.equal(ahorroAcumulado(datos), 280000);
+  assert.equal(ahorroLibre(datos), 80000, "el fondo es lo apartado SIN meta");
+});
+
+test("sin objetivo definido, el fondo de emergencia no se califica: se declara", () => {
+  const e = estadoColchon(datosDePrueba());
+  assert.equal(e.objetivo, null);
+  assert.equal(e.veredicto.estado, ESTADOS.SIN_DATOS);
+});
+
+test("con objetivo, el fondo dice cuánto falta", () => {
+  const base = datosDePrueba();
+  const datos = conMovimientos(
+    { ...base, perfil: { ...base.perfil, colchonObjetivo: 1000000 } },
+    [{ fecha: "2026-09-02", monto: 300000, tipo: "ahorro" }],
+  );
+  const e = estadoColchon(datos);
+  assert.equal(e.acumulado, 300000);
+  assert.equal(e.falta, 700000);
+  assert.equal(e.veredicto.estado, ESTADOS.AJUSTADO, "un fondo a medias va en progreso, no es un plan que no cierre");
+  assert.equal(e.veredicto.severidad, "ALTA", "y con menos de la mitad, la urgencia se dice en la severidad");
+  assert.match(e.veredicto.motivo, /faltan \$7,000\.00/);
+
+  const completo = conMovimientos(datos, [{ fecha: "2026-09-03", monto: 700000, tipo: "ahorro" }]);
+  assert.equal(estadoColchon(completo).veredicto.estado, ESTADOS.VA_BIEN);
 });

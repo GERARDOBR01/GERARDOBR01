@@ -112,6 +112,55 @@ revisar("el fijo entra en el comprometido del mes", (await pagina.textContent("m
 await pagina.click('[data-vista="hoy"]');
 revisar("y aparece en 'Por pagar' del panel", (await pagina.textContent("main")).includes("Por pagar"));
 
+// 9. Los tres movimientos que no son un gasto, y corregir uno ya capturado
+const cifra = async () => {
+  const texto = (await pagina.locator(".cifra").first().textContent()).trim();
+  return Number(texto.replace(/[^\d.]/g, "")) * (texto.includes("−") ? -1 : 1);
+};
+await pagina.click('[data-accion="capturar"]');
+await pagina.click('[data-clave="tipo"] [data-valor="ingreso"]');
+await pagina.waitForTimeout(120);
+revisar("un ingreso no pide categoría", (await pagina.locator('[data-clave="categoria"]').count()) === 0);
+await pagina.fill('[data-clave="monto"]', "500");
+await pagina.click('button[type="submit"]');
+await pagina.waitForSelector(".velo", { state: "detached" });
+
+const antesApartar = await cifra();
+await pagina.click('[data-accion="capturar"]');
+await pagina.click('[data-clave="tipo"] [data-valor="ahorro"]');
+await pagina.waitForTimeout(120);
+await pagina.fill('[data-clave="monto"]', "200");
+await pagina.click('button[type="submit"]');
+await pagina.waitForSelector(".velo", { state: "detached" });
+const apartado = await cifra();
+await pagina.click('[data-accion="capturar"]');
+await pagina.click('[data-clave="tipo"] [data-valor="retiro"]');
+await pagina.waitForTimeout(120);
+await pagina.fill('[data-clave="monto"]', "50");
+await pagina.click('button[type="submit"]');
+await pagina.waitForSelector(".velo", { state: "detached" });
+const retirado = await cifra();
+revisar(
+  "apartar baja el disponible y retirar lo devuelve",
+  Math.round(antesApartar - apartado) === 200 && Math.round(retirado - apartado) === 50,
+  `${antesApartar} → ${apartado} → ${retirado}`,
+);
+
+const antesDeCorregir = await pagina.locator('[data-accion="editar-movimiento"]').count();
+await pagina.locator(".fila", { hasText: "Súper" }).locator('[data-accion="editar-movimiento"]').first().click();
+await pagina.fill('[data-clave="monto"]', "999");
+await pagina.click('button[type="submit"]');
+await pagina.waitForSelector(".velo", { state: "detached" });
+revisar(
+  "corregir un movimiento no lo duplica",
+  (await pagina.locator('[data-accion="editar-movimiento"]').count()) === antesDeCorregir,
+);
+
+// 10. Historial
+await pagina.click('[data-accion="ver-historial"]');
+revisar("el historial agrupa por mes", (await pagina.textContent("main")).includes("septiembre 2026"));
+await pagina.click('[data-vista="hoy"]');
+
 
 revisar("ni un solo error de JavaScript", errores.length === 0, errores.slice(0, 3).join(" | "));
 

@@ -12,8 +12,8 @@ import { hoyISO, mesDe, cicloDe } from "../motor/ciclo.js";
 import {
   TIPOS, agregarMovimiento, eliminarMovimiento, movimientosEntre, categoriaPorId, idNuevo, datosVacios,
 } from "../motor/modelo.js";
-import { resumenPresupuesto, topesVariables } from "../motor/presupuesto.js";
-import { panelHoy, capacidadPorCiclo } from "../motor/ahorro.js";
+import { resumenPresupuesto, topesVariables, topeVigente } from "../motor/presupuesto.js";
+import { panelHoy, capacidadPorCiclo, estadoColchon, ahorroLibre } from "../motor/ahorro.js";
 import { resumenMetas, exigenciaTotal } from "../motor/metas.js";
 import { proximosVencimientos, saldoDeuda, totalFijosMensual, movimientoDeFijo } from "../motor/fijos.js";
 import { abrirAlmacen, MODOS } from "../almacen/almacen.js";
@@ -115,12 +115,13 @@ function render() {
     <button class="flotante" data-accion="capturar" aria-label="Capturar gasto">+</button>
 
     <nav class="nav"><div class="envoltura">
-      ${VISTAS.map((v) => `<button data-accion="ir" data-vista="${v.id}" aria-current="${app.vista === v.id}">
+      ${VISTAS.map((v) => `<button data-accion="ir" data-vista="${v.id}" aria-current="${app.vista === v.id || (app.vista === 'historial' && v.id === 'hoy')}">
         <span>${v.icono}</span>${esc(v.nombre)}</button>`).join("")}
     </div></nav>`;
 }
 
 function vistaActual() {
+  if (app.vista === "historial") return vistaHistorial();
   if (app.vista === "presupuesto") return vistaPresupuesto();
   if (app.vista === "metas") return vistaMetas();
   if (app.vista === "fijos") return vistaFijos();
@@ -200,28 +201,91 @@ function vistaHoy() {
         .join("")}</div>`
     : "";
 
+  const totalMovimientos = Object.values(datos.movimientos).reduce((t, l) => t + l.length, 0);
   const listaMovimientos = recientes.length
-    ? `<div class="titulo-seccion">Últimos movimientos</div><div class="tarjeta">${recientes.map(filaMovimiento).join("")}</div>`
-    : `<div class="titulo-seccion">Últimos movimientos</div><div class="tarjeta">${vacio("Nada capturado en este ciclo todavía. El botón + es para eso.")}</div>`;
+    ? `<div class="titulo-seccion">Últimos movimientos</div><div class="tarjeta">${recientes.map(filaMovimiento).join("")}
+        <div class="acciones"><button class="boton tenue" data-accion="ver-historial">Ver el historial (${totalMovimientos})</button></div></div>`
+    : `<div class="titulo-seccion">Últimos movimientos</div><div class="tarjeta">${vacio("Nada capturado en este ciclo todavía. El botón + es para eso.")}
+        ${totalMovimientos ? `<div class="acciones"><button class="boton tenue" data-accion="ver-historial">Ver el historial (${totalMovimientos})</button></div>` : ""}</div>`;
 
-  return `${arranque}${principal}<div class="duo">${porDia}${capacidad}</div>${listaVencimientos}${listaMovimientos}`;
+  const colchon = estadoColchon(datos);
+  const tarjetaColchon =
+    colchon.objetivo === null && colchon.acumulado === 0
+      ? "" // sin objetivo y sin nada apartado, no hay nada que enseñar todavía
+      : `<div class="titulo-seccion">Fondo de emergencia</div>
+         <div class="tarjeta">
+           <div class="cifra" style="font-size:28px">${monto(colchon.acumulado)}${
+             colchon.objetivo !== null ? `<span class="rotulo"> de ${monto(colchon.objetivo)}</span>` : ""
+           }</div>
+           ${colchon.objetivo !== null
+             ? `<div class="barra-progreso"><i class="${esc(colchon.veredicto.estado)}" style="width:${Math.min(
+                 Math.round((colchon.acumulado * 100) / colchon.objetivo), 100)}%"></i></div>`
+             : ""}
+           ${veredictoHTML(colchon.veredicto)}
+           <div class="acciones"><button class="boton chico tenue" data-accion="editar-colchon">
+             ${colchon.objetivo === null ? "Definir mi fondo" : "Cambiar objetivo"}</button></div>
+         </div>`;
+
+  return `${arranque}${principal}<div class="duo">${porDia}${capacidad}</div>${listaVencimientos}${tarjetaColchon}${listaMovimientos}`;
 }
 
 function filaMovimiento(m) {
   const categoria = categoriaPorId(app.datos, m.categoria);
-  const signo = m.tipo === TIPOS.INGRESO ? "+" : m.tipo === TIPOS.AHORRO ? "→" : "−";
-  const nombre = m.tipo === TIPOS.INGRESO ? "Ingreso" : m.tipo === TIPOS.AHORRO ? "Apartado a meta" : categoria ? categoria.nombre : "Gasto";
-  const icono = m.tipo === TIPOS.INGRESO ? "↓" : m.tipo === TIPOS.AHORRO ? "◎" : categoria ? categoria.emoji : "•";
+  const signo = m.tipo === TIPOS.INGRESO || m.tipo === TIPOS.RETIRO ? "+" : m.tipo === TIPOS.AHORRO ? "→" : "−";
+  const nombre =
+    m.tipo === TIPOS.INGRESO ? "Ingreso"
+    : m.tipo === TIPOS.AHORRO ? "Apartado"
+    : m.tipo === TIPOS.RETIRO ? "Retiro de lo apartado"
+    : categoria ? categoria.nombre : "Gasto";
+  const icono =
+    m.tipo === TIPOS.INGRESO ? "↓" : m.tipo === TIPOS.AHORRO ? "◎" : m.tipo === TIPOS.RETIRO ? "↑" : categoria ? categoria.emoji : "•";
 
   return `<div class="fila">
     <div class="emoji">${esc(icono)}</div>
-    <div class="crece">
+    <button class="crece toque" data-accion="editar-movimiento" data-id="${esc(m.id)}">
       <div class="nombre">${esc(m.nota || nombre)}</div>
       <div class="sub">${fechaCorta(m.fecha)}${m.nota ? ` · ${esc(nombre)}` : ""}</div>
-    </div>
+    </button>
     <div class="monto">${signo}${formatear(m.monto)}</div>
     <button class="boton chico tenue" data-accion="borrar-movimiento" data-id="${esc(m.id)}" aria-label="Borrar">✕</button>
   </div>`;
+}
+
+// --- Vista: Historial ---
+//
+// Mes por mes, con lo que entró, lo que salió y lo que se apartó. Sin gráficas: los números
+// y sus movimientos, que es lo que se necesita para revisar y corregir.
+
+function vistaHistorial() {
+  const meses = Object.keys(app.datos.movimientos).sort().reverse();
+  if (!meses.length) {
+    return `<div class="tarjeta">${vacio("Todavía no hay nada capturado.")}
+      <button class="boton tenue" data-accion="ir" data-vista="hoy">Volver</button></div>`;
+  }
+
+  const bloques = meses
+    .map((mes) => {
+      const lista = app.datos.movimientos[mes];
+      const suman = (filtro) => lista.reduce((t, m) => (filtro(m) ? t + m.monto : t), 0);
+      const gastos = suman((m) => m.tipo === TIPOS.GASTO);
+      const ingresos = suman((m) => m.tipo === TIPOS.INGRESO);
+      const ahorros = suman((m) => m.tipo === TIPOS.AHORRO);
+      const [anio, numero] = mes.split("-").map(Number);
+
+      return `<div class="titulo-seccion">${MESES[numero - 1]} ${anio}</div>
+        <div class="tarjeta">
+          <div class="fila" style="border-bottom:1px solid var(--borde)">
+            <div class="crece"><div class="sub">${lista.length} movimiento(s)</div></div>
+            <div class="monto" style="font-size:13px">
+              ${ingresos ? `<span style="color:var(--bien)">+${monto(ingresos)}</span> ` : ""}−${monto(gastos)}${ahorros ? ` · →${monto(ahorros)}` : ""}
+            </div>
+          </div>
+          ${lista.map(filaMovimiento).join("")}
+        </div>`;
+    })
+    .join("");
+
+  return `<div class="acciones" style="margin:0 0 4px"><button class="boton tenue" data-accion="ir" data-vista="hoy">← Volver a Hoy</button></div>${bloques}`;
 }
 
 // --- Vista: Presupuesto ---
@@ -391,6 +455,9 @@ function vistaAjustes() {
       <div class="fila"><div class="crece"><div class="nombre">Días de corte</div>
         <div class="sub">${perfil.cortes.length ? `quincenal (día ${perfil.cortes.join(", ")} y fin de mes)` : "mensual"}</div></div>
         <button class="boton chico tenue" data-accion="editar-cortes">Cambiar</button></div>
+      <div class="fila"><div class="crece"><div class="nombre">Fondo de emergencia</div>
+        <div class="sub">cuánto quieres tener guardado para imprevistos</div></div>
+        <button class="boton chico tenue" data-accion="editar-colchon">${monto(perfil.colchonObjetivo)}</button></div>
       <div class="fila"><div class="crece"><div class="nombre">Tema</div>
         <div class="sub">claro, oscuro o el del sistema</div></div>
         <button class="boton chico tenue" data-accion="cambiar-tema">Cambiar</button></div>
@@ -437,12 +504,26 @@ function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra 
     if (e.target.dataset.velo) cerrarHoja();
   });
 
-  formulario.querySelectorAll(".chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      const grupo = chip.parentElement;
-      grupo.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", "false"));
-      chip.setAttribute("aria-pressed", "true");
-      grupo.dataset.valor = chip.dataset.valor;
+  // Lo que hay escrito ahora mismo, sin validar: sirve para no perder lo tecleado cuando
+  // la hoja cambia de forma (elegir "Ingreso" quita las categorías, por ejemplo).
+  const leerCrudo = () => {
+    const valores = {};
+    for (const campo of campos) {
+      const nodo = formulario.querySelector(`[data-clave="${campo.clave}"]`);
+      if (nodo) valores[campo.clave] = campo.tipo === "chips" ? nodo.dataset.valor || "" : nodo.value;
+    }
+    return valores;
+  };
+
+  formulario.querySelectorAll(".chips").forEach((grupo) => {
+    const campo = campos.find((c) => c.clave === grupo.dataset.clave);
+    grupo.querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        grupo.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", "false"));
+        chip.setAttribute("aria-pressed", "true");
+        grupo.dataset.valor = chip.dataset.valor;
+        if (campo && campo.alCambiar) campo.alCambiar(chip.dataset.valor, leerCrudo());
+      });
     });
   });
 
@@ -585,23 +666,17 @@ const acciones = {
   },
 
   capturar() {
-    abrirHoja({
-      titulo: "Capturar gasto",
-      textoGuardar: "Guardar gasto",
-      campos: [
-        { clave: "monto", etiqueta: "Monto", tipo: "monto", requerido: true },
-        { clave: "categoria", etiqueta: "Categoría", tipo: "chips", opciones: opcionesCategorias(), valor: "super" },
-        { clave: "nota", etiqueta: "Nota (opcional)", tipo: "texto" },
-        { clave: "fecha", etiqueta: "Fecha", tipo: "fecha", valor: app.hoy, requerido: true },
-      ],
-      async alGuardar(v) {
-        const { datos, error } = agregarMovimiento(app.datos, {
-          fecha: v.fecha, monto: v.monto, tipo: TIPOS.GASTO, categoria: v.categoria || "otros", nota: v.nota,
-        });
-        if (error) return error;
-        await guardar(datos);
-      },
-    });
+    hojaMovimiento();
+  },
+
+  "editar-movimiento"(el) {
+    const movimiento = buscarMovimiento(el.dataset.id);
+    if (movimiento) hojaMovimiento({ tipo: movimiento.tipo, movimiento });
+  },
+
+  "ver-historial"() {
+    app.vista = "historial";
+    render();
   },
 
   "editar-ingreso"() {
@@ -616,6 +691,24 @@ const acciones = {
       ],
       async alGuardar(v) {
         await guardar({ ...app.datos, perfil: { ...app.datos.perfil, ingresoQuincenal: v.monto } });
+      },
+    });
+  },
+
+  "editar-colchon"() {
+    const fijos = totalFijosMensual(app.datos);
+    const referencia = fijos.total > 0 ? `Tres meses de tus fijos actuales son ${formatear(fijos.total * 3)}.` : "";
+    abrirHoja({
+      titulo: "Fondo de emergencia",
+      campos: [
+        {
+          clave: "monto", etiqueta: "Cuánto quieres tener guardado", tipo: "monto",
+          valor: comoCampo(app.datos.perfil.colchonObjetivo),
+          ayuda: `${referencia} Déjalo vacío para quitar el objetivo.`.trim(),
+        },
+      ],
+      async alGuardar(v) {
+        await guardar({ ...app.datos, perfil: { ...app.datos.perfil, colchonObjetivo: v.monto } });
       },
     });
   },
@@ -647,17 +740,58 @@ const acciones = {
 
   "editar-tope"(el) {
     const categoria = categoriaPorId(app.datos, el.dataset.id);
+    const mes = mesDe(app.hoy);
+
     abrirHoja({
-      titulo: `Tope mensual · ${categoria.nombre}`,
+      titulo: categoria.nombre,
       campos: [
+        { clave: "nombre", etiqueta: "Nombre", tipo: "texto", valor: categoria.nombre, requerido: true },
+        { clave: "emoji", etiqueta: "Emoji", tipo: "texto", valor: categoria.emoji },
         {
-          clave: "tope", etiqueta: "Cuánto al mes", tipo: "monto",
-          valor: categoria.tope === null ? "" : (categoria.tope / 100).toFixed(2),
+          clave: "tope", etiqueta: "Tope mensual", tipo: "monto",
+          valor: comoCampo(topeVigente(app.datos, mes, categoria.id)),
           ayuda: "Déjalo vacío para quitarle el tope. Sin tope no hay semáforo.",
         },
+        {
+          clave: "alcance", etiqueta: "Ese tope aplica", tipo: "chips", valor: "siempre",
+          opciones: [
+            { valor: "siempre", etiqueta: "De aquí en adelante" },
+            { valor: "mes", etiqueta: "Solo este mes" },
+          ],
+        },
       ],
+      extra: `<button type="button" class="boton chico peligro" data-accion="archivar-categoria" data-id="${esc(categoria.id)}">
+        Archivar esta categoría</button>`,
       async alGuardar(v) {
-        const categorias = app.datos.categorias.map((c) => (c.id === categoria.id ? { ...c, tope: v.tope } : c));
+        const categorias = app.datos.categorias.map((c) =>
+          c.id === categoria.id
+            ? { ...c, nombre: v.nombre, emoji: v.emoji || "•", tope: v.alcance === "mes" ? c.tope : v.tope }
+            : c,
+        );
+
+        // Un tope "solo este mes" no toca el catálogo: el histórico de los otros meses
+        // queda exactamente como estaba.
+        const presupuestos = { ...app.datos.presupuestos };
+        if (v.alcance === "mes") {
+          const delMes = { ...(presupuestos[mes] || {}) };
+          if (v.tope === null) delete delMes[categoria.id];
+          else delMes[categoria.id] = v.tope;
+          presupuestos[mes] = delMes;
+        }
+
+        await guardar({ ...app.datos, categorias, presupuestos });
+      },
+    });
+  },
+
+  "archivar-categoria"(el) {
+    const categoria = categoriaPorId(app.datos, el.dataset.id);
+    confirmar({
+      titulo: `¿Archivar "${categoria.nombre}"?`,
+      mensaje: "Deja de aparecer al capturar, pero los gastos que ya tiene se conservan en tu historial.",
+      textoBoton: "Sí, archivar",
+      alConfirmar: async () => {
+        const categorias = app.datos.categorias.map((c) => (c.id === categoria.id ? { ...c, archivada: true } : c));
         await guardar({ ...app.datos, categorias });
       },
     });
@@ -710,22 +844,7 @@ const acciones = {
   },
 
   apartar(el) {
-    const meta = app.datos.metas.find((m) => m.id === el.dataset.id);
-    abrirHoja({
-      titulo: `Apartar para ${meta.nombre}`,
-      textoGuardar: "Apartar",
-      campos: [
-        { clave: "monto", etiqueta: "Cuánto apartas", tipo: "monto", requerido: true },
-        { clave: "fecha", etiqueta: "Fecha", tipo: "fecha", valor: app.hoy, requerido: true },
-      ],
-      async alGuardar(v) {
-        const { datos, error } = agregarMovimiento(app.datos, {
-          fecha: v.fecha, monto: v.monto, tipo: TIPOS.AHORRO, metaId: meta.id, nota: `Apartado: ${meta.nombre}`,
-        });
-        if (error) return error;
-        await guardar(datos);
-      },
-    });
+    hojaMovimiento({ tipo: TIPOS.AHORRO, valores: { metaId: el.dataset.id } });
   },
 
   "nuevo-fijo"() {
@@ -742,6 +861,30 @@ const acciones = {
     const { datos, error } = agregarMovimiento(app.datos, movimientoDeFijo(fijo, app.hoy));
     if (error) return;
     await guardar(datos);
+  },
+
+  "borrar-fijo"(el) {
+    const fijo = app.datos.fijos.find((f) => f.id === el.dataset.id);
+    confirmar({
+      titulo: `¿Borrar "${fijo ? fijo.nombre : "el fijo"}"?`,
+      mensaje: "Deja de contar en lo comprometido del mes. Los pagos que ya registraste no se borran.",
+      textoBoton: "Sí, borrar el fijo",
+      alConfirmar: async () => {
+        await guardar({ ...app.datos, fijos: app.datos.fijos.filter((f) => f.id !== el.dataset.id) });
+      },
+    });
+  },
+
+  "borrar-deuda"(el) {
+    const deuda = app.datos.deudas.find((d) => d.id === el.dataset.id);
+    confirmar({
+      titulo: `¿Borrar "${deuda ? deuda.nombre : "la deuda"}"?`,
+      mensaje: "Los pagos que le registraste siguen en tu historial como gastos.",
+      textoBoton: "Sí, borrar la deuda",
+      alConfirmar: async () => {
+        await guardar({ ...app.datos, deudas: app.datos.deudas.filter((d) => d.id !== el.dataset.id) });
+      },
+    });
   },
 
   "nueva-deuda"() {
@@ -838,6 +981,103 @@ const acciones = {
   },
 };
 
+/** Centavos a lo que se teclea en un campo: 123456 → "1234.56". */
+function comoCampo(centavos) {
+  return centavos === null || centavos === undefined ? "" : (centavos / 100).toFixed(2);
+}
+
+function buscarMovimiento(id) {
+  for (const lista of Object.values(app.datos.movimientos)) {
+    const encontrado = lista.find((m) => m.id === id);
+    if (encontrado) return encontrado;
+  }
+  return null;
+}
+
+const TIPOS_CAPTURA = [
+  { valor: TIPOS.GASTO, etiqueta: "Gasto" },
+  { valor: TIPOS.INGRESO, etiqueta: "Ingreso" },
+  { valor: TIPOS.AHORRO, etiqueta: "Apartar" },
+  { valor: TIPOS.RETIRO, etiqueta: "Retirar" },
+];
+
+/**
+ * Un solo formulario para las tres cosas que mueven dinero: gasto, ingreso y apartado.
+ * Cambia de forma según lo que elijas (un ingreso no tiene categoría), conservando lo que
+ * ya tecleaste. También sirve para CORREGIR un movimiento: conserva su id, así que editar
+ * no es borrar y volver a capturar.
+ */
+function hojaMovimiento(config = {}) {
+  const { movimiento = null, valores = {} } = config;
+  const tipo = config.tipo || TIPOS.GASTO;
+  const editando = Boolean(movimiento);
+
+  const heredar = (clave, porDefecto) =>
+    valores[clave] !== undefined ? valores[clave] : movimiento ? movimiento[clave] : porDefecto;
+
+  const campos = [
+    {
+      clave: "tipo", etiqueta: "Qué es", tipo: "chips", valor: tipo, opciones: TIPOS_CAPTURA,
+      // Al cambiar de tipo se vuelve a abrir la hoja con los campos que corresponden.
+      alCambiar: (nuevo, actuales) => hojaMovimiento({ tipo: nuevo, movimiento, valores: { ...actuales, tipo: nuevo } }),
+    },
+    {
+      clave: "monto", etiqueta: "Monto", tipo: "monto", requerido: true,
+      valor: valores.monto !== undefined ? valores.monto : movimiento ? comoCampo(movimiento.monto) : "",
+    },
+  ];
+
+  if (tipo === TIPOS.GASTO) {
+    campos.push({
+      clave: "categoria", etiqueta: "Categoría", tipo: "chips",
+      valor: heredar("categoria", "super") || "super", opciones: opcionesCategorias(),
+    });
+  }
+
+  if (tipo === TIPOS.AHORRO || tipo === TIPOS.RETIRO) {
+    const metas = app.datos.metas.map((m) => ({ valor: m.id, etiqueta: m.nombre }));
+    campos.push({
+      clave: "metaId",
+      etiqueta: tipo === TIPOS.AHORRO ? "¿Para qué lo apartas?" : "¿De dónde lo sacas?",
+      valor: heredar("metaId", "") || "",
+      tipo: "chips",
+      opciones: [{ valor: "", etiqueta: "Fondo de emergencia" }, ...metas],
+    });
+  }
+
+  campos.push(
+    { clave: "nota", etiqueta: "Nota (opcional)", tipo: "texto", valor: heredar("nota", "") || "" },
+    { clave: "fecha", etiqueta: "Fecha", tipo: "fecha", valor: heredar("fecha", app.hoy), requerido: true },
+  );
+
+  const nombres = { [TIPOS.GASTO]: "gasto", [TIPOS.INGRESO]: "ingreso", [TIPOS.AHORRO]: "apartado", [TIPOS.RETIRO]: "retiro" };
+
+  abrirHoja({
+    titulo: editando ? "Corregir movimiento" : `Capturar ${nombres[tipo]}`,
+    textoGuardar: editando ? "Guardar cambios" : "Guardar",
+    extra: editando
+      ? `<button type="button" class="boton chico peligro" data-accion="borrar-movimiento" data-id="${esc(movimiento.id)}">Borrar este movimiento</button>`
+      : "",
+    campos,
+    async alGuardar(v) {
+      const base = editando ? eliminarMovimiento(app.datos, movimiento.id) : app.datos;
+      const { datos, error } = agregarMovimiento(base, {
+        id: editando ? movimiento.id : undefined,
+        fecha: v.fecha,
+        monto: v.monto,
+        tipo: v.tipo || tipo,
+        categoria: (v.tipo || tipo) === TIPOS.GASTO ? v.categoria || "otros" : null,
+        metaId: [TIPOS.AHORRO, TIPOS.RETIRO].includes(v.tipo || tipo) ? v.metaId : null,
+        nota: v.nota,
+        fijoId: editando ? movimiento.fijoId : null,
+        deudaId: editando ? movimiento.deudaId : null,
+      });
+      if (error) return error;
+      await guardar(datos);
+    },
+  });
+}
+
 function hojaMeta(meta) {
   abrirHoja({
     titulo: meta ? `Editar ${meta.nombre}` : "Nueva meta",
@@ -876,6 +1116,9 @@ function hojaFijo(fijo) {
       { clave: "diaCorte", etiqueta: "Qué día del mes se paga", tipo: "numero", valor: fijo ? fijo.diaCorte : 1, requerido: true },
       { clave: "categoria", etiqueta: "Categoría", tipo: "chips", valor: fijo ? fijo.categoria : "servicios", opciones: opcionesCategorias() },
     ],
+    extra: fijo
+      ? `<button type="button" class="boton chico peligro" data-accion="borrar-fijo" data-id="${esc(fijo.id)}">Borrar este fijo</button>`
+      : "",
     async alGuardar(v) {
       const nuevo = {
         id: fijo ? fijo.id : idNuevo("fijo"),
@@ -902,6 +1145,9 @@ function hojaDeuda(deuda) {
         ayuda: "Sin tasa, la app reporta el saldo SIN intereses y lo dice. No se inventa ninguna.",
       },
     ],
+    extra: deuda
+      ? `<button type="button" class="boton chico peligro" data-accion="borrar-deuda" data-id="${esc(deuda.id)}">Borrar esta deuda</button>`
+      : "",
     async alGuardar(v) {
       const nueva = {
         id: deuda ? deuda.id : idNuevo("deuda"),

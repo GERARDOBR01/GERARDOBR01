@@ -14,11 +14,16 @@ finanzas/app/finanzas.html     ← esto es la app. Ábrelo y ya.
 
 | Pantalla | Qué contesta |
 |---|---|
-| **Hoy** | Cuánto queda de la quincena, cuánto por día, con cuánto cierra el ciclo a este ritmo y qué se paga esta semana |
+| **Hoy** | Cuánto queda de la quincena, cuánto por día, con cuánto cierra el ciclo a este ritmo, qué se paga esta semana y cómo va el fondo de emergencia |
+| **Historial** | Mes por mes: lo que entró, lo que salió y lo que se apartó. Cualquier movimiento se corrige tocándolo |
 | **Presupuesto** | Cuánto va gastado por categoría contra su tope, con semáforo |
 | **Metas** | Cuánto hay que apartar por quincena — y si eso cabe en la capacidad real de ahorro |
 | **Fijos** | Qué vence, qué ya se pagó y cuánto se debe |
-| **Ajustes** | Ingreso, ciclo, categorías, respaldo en JSON |
+| **Ajustes** | Ingreso, ciclo, fondo de emergencia, respaldo en JSON |
+
+Cuatro cosas mueven dinero y todas se capturan igual, desde el botón `+`: **gasto**,
+**ingreso**, **apartar** y **retirar**. Un retiro no borra el apartado original — los dos
+quedan en el historial, porque eso fue lo que pasó.
 
 ## Las tres reglas
 
@@ -37,6 +42,8 @@ NO_ALCANZA — requiere $3,750.00 por quincena, capacidad estimada $530.00 — f
   proyectaría un mes catastrófico.
 - Una categoría sin tope no se pinta de verde: se marca `SIN_TOPE`, porque no hay contra
   qué comparar.
+- Un fondo de emergencia a medias va `AJUSTADO`, no `NO_ALCANZA`: no es un plan que no
+  cierre, es un ahorro en progreso. La urgencia se dice en la severidad.
 - **Una deuda sin tasa capturada no proyecta intereses.** Reporta el saldo y declara que
   va sin ellos. Inventar una tasa "típica" daría un número creíble y falso.
 
@@ -53,6 +60,11 @@ montos viven en el dispositivo, y el respaldo en JSON es del usuario.
   declara, en vez de perder lo que esa versión guardó.
 - **Fechas sin zonas horarias.** `AAAA-MM-DD` en local: una zona mal aplicada mueve un gasto
   de quincena y descuadra el ciclo.
+- **Nada falla en silencio.** En un origen aislado, hasta *leer* `localStorage` lanza: por
+  eso no se pregunta con `typeof`, se intenta dentro de un `try`. Si no se puede guardar, la
+  app lo dice de entrada y sigue usable; si hay datos que esta versión no sabe abrir, se
+  **niega a escribir** en vez de pisarlos; y no se usa el `confirm()` del navegador, que
+  también lanza ahí. Todo eso está cubierto por pruebas.
 
 ## No depende de nadie para abrirse
 
@@ -80,7 +92,7 @@ node herramientas/humo.mjs         # abre la app en un navegador de verdad (opci
 
 El armado **falla ruidosamente** ante lo que produciría un HTML roto en silencio: un
 módulo que existe pero nadie metió en la lista, dos nombres de nivel superior repetidos,
-o un `import` sin resolver.
+un `import` sin resolver, o un resultado que no compila.
 
 Para cambiarle el nombre a la app, `TITULO` en `herramientas/armar.mjs`: la pantalla lo
 lee del `<title>`.

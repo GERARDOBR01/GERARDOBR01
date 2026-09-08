@@ -112,6 +112,15 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 else arrancar();
 })();`;
 
+// 4) Y que lo armado sea JavaScript válido. Parece obvio: por no comprobarlo, un `\\"`
+//    dentro de una expresión de plantilla se coló hasta el navegador y la app no arrancó.
+//    `new Function` lo parsea sin ejecutar una sola línea.
+try {
+  new Function(guion);
+} catch (e) {
+  fallar(`lo armado no es JavaScript válido: ${e.message}`);
+}
+
 const estilos = readFileSync(join(RAIZ, "interfaz/estilos.css"), "utf8");
 const marcado = readFileSync(join(RAIZ, "interfaz/plantilla.html"), "utf8");
 const sello = new Date().toISOString().slice(0, 10);
