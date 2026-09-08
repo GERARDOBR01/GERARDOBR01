@@ -1,6 +1,8 @@
-// Adaptador OPCIONAL de sincronización.
+// Adaptador OPCIONAL del anfitrión.
 //
 // Éste es el único archivo de todo el proyecto que sabe que existe un entorno anfitrión.
+// Hace dos cosas: sincronizar entre dispositivos y entregar el archivo de respaldo cuando
+// el visor no deja que un enlace lo descargue por su cuenta.
 // Si se borra, la app sigue funcionando igual: guarda en el navegador y lo declara en la
 // barra superior. Ninguna otra parte del código lo nombra — hay una prueba que lo verifica.
 //
@@ -74,5 +76,26 @@ export async function abrirSincronizacion() {
     };
   } catch (e) {
     return null;
+  }
+}
+
+/**
+ * Entrega un archivo al usuario a través del anfitrión.
+ * Devuelve false si aquí no se puede, para que la app caiga al enlace de descarga normal
+ * (que es lo que funciona cuando el archivo está abierto desde el disco).
+ */
+export async function descargarEnAnfitrion({ nombre, texto }) {
+  try {
+    const anfitrion = globalThis.claude;
+    if (!anfitrion || typeof anfitrion.use !== "function") return false;
+
+    const descargas = await anfitrion.use("downloads");
+    if (!descargas) return false;
+
+    await descargas.save({ filename: nombre, data: texto });
+    return true;
+  } catch (e) {
+    // Que el usuario diga "no" no es un fallo: no hay nada a lo que caer.
+    return Boolean(e && e.code === "declined");
   }
 }

@@ -734,15 +734,26 @@ const acciones = {
     await guardar(eliminarMovimiento(app.datos, el.dataset.id));
   },
 
-  exportar() {
+  async exportar() {
     const texto = exportar(app.datos);
-    const enlace = document.createElement("a");
-    enlace.href = URL.createObjectURL(new Blob([texto], { type: "application/json" }));
-    enlace.download = nombreDeRespaldo(app.hoy);
-    document.body.appendChild(enlace);
-    enlace.click();
-    enlace.remove();
-    app.aviso = "Respaldo descargado. Si tu navegador no lo permite, copia el JSON desde la consola.";
+    const nombre = nombreDeRespaldo(app.hoy);
+
+    // Hay visores donde un enlace de descarga no hace absolutamente nada. Si el anfitrión
+    // sabe entregar archivos, que lo entregue él; si no, el enlace de toda la vida, que es
+    // lo que funciona con la app abierta desde el disco.
+    const entregado =
+      typeof descargarEnAnfitrion === "function" ? await descargarEnAnfitrion({ nombre, texto }) : false;
+
+    if (!entregado) {
+      const enlace = document.createElement("a");
+      enlace.href = URL.createObjectURL(new Blob([texto], { type: "application/json" }));
+      enlace.download = nombre;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+    }
+
+    app.aviso = `Respaldo listo: ${nombre}. Es un JSON con todo dentro; guárdalo donde tú quieras.`;
     render();
   },
 

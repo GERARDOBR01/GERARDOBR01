@@ -1688,10 +1688,12 @@ function masReciente(a, b) {
   return fechaB > fechaA ? b : a;
 }
 
-// ═══ almacen/sincronizacion-claude.js ═══
-// Adaptador OPCIONAL de sincronización.
+// ═══ almacen/anfitrion-claude.js ═══
+// Adaptador OPCIONAL del anfitrión.
 //
 // Éste es el único archivo de todo el proyecto que sabe que existe un entorno anfitrión.
+// Hace dos cosas: sincronizar entre dispositivos y entregar el archivo de respaldo cuando
+// el visor no deja que un enlace lo descargue por su cuenta.
 // Si se borra, la app sigue funcionando igual: guarda en el navegador y lo declara en la
 // barra superior. Ninguna otra parte del código lo nombra — hay una prueba que lo verifica.
 //
@@ -1765,6 +1767,27 @@ async function abrirSincronizacion() {
     };
   } catch (e) {
     return null;
+  }
+}
+
+/**
+ * Entrega un archivo al usuario a través del anfitrión.
+ * Devuelve false si aquí no se puede, para que la app caiga al enlace de descarga normal
+ * (que es lo que funciona cuando el archivo está abierto desde el disco).
+ */
+async function descargarEnAnfitrion({ nombre, texto }) {
+  try {
+    const anfitrion = globalThis.claude;
+    if (!anfitrion || typeof anfitrion.use !== "function") return false;
+
+    const descargas = await anfitrion.use("downloads");
+    if (!descargas) return false;
+
+    await descargas.save({ filename: nombre, data: texto });
+    return true;
+  } catch (e) {
+    // Que el usuario diga "no" no es un fallo: no hay nada a lo que caer.
+    return Boolean(e && e.code === "declined");
   }
 }
 
@@ -2502,15 +2525,26 @@ const acciones = {
     await guardar(eliminarMovimiento(app.datos, el.dataset.id));
   },
 
-  exportar() {
+  async exportar() {
     const texto = exportar(app.datos);
-    const enlace = document.createElement("a");
-    enlace.href = URL.createObjectURL(new Blob([texto], { type: "application/json" }));
-    enlace.download = nombreDeRespaldo(app.hoy);
-    document.body.appendChild(enlace);
-    enlace.click();
-    enlace.remove();
-    app.aviso = "Respaldo descargado. Si tu navegador no lo permite, copia el JSON desde la consola.";
+    const nombre = nombreDeRespaldo(app.hoy);
+
+    // Hay visores donde un enlace de descarga no hace absolutamente nada. Si el anfitrión
+    // sabe entregar archivos, que lo entregue él; si no, el enlace de toda la vida, que es
+    // lo que funciona con la app abierta desde el disco.
+    const entregado =
+      typeof descargarEnAnfitrion === "function" ? await descargarEnAnfitrion({ nombre, texto }) : false;
+
+    if (!entregado) {
+      const enlace = document.createElement("a");
+      enlace.href = URL.createObjectURL(new Blob([texto], { type: "application/json" }));
+      enlace.download = nombre;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+    }
+
+    app.aviso = `Respaldo listo: ${nombre}. Es un JSON con todo dentro; guárdalo donde tú quieras.`;
     render();
   },
 

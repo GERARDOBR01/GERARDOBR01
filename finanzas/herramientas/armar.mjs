@@ -33,7 +33,7 @@ const MODULOS = [
   "almacen/archivo.js",
   "almacen/local.js",
   "almacen/almacen.js",
-  { ruta: "almacen/sincronizacion-claude.js", opcional: true }, // borrarlo no rompe nada
+  { ruta: "almacen/anfitrion-claude.js", opcional: true }, // borrarlo no rompe nada
   "interfaz/ui.js",
 ];
 

@@ -57,7 +57,7 @@ montos viven en el dispositivo, y el respaldo en JSON es del usuario.
 ## No depende de nadie para abrirse
 
 La sincronización entre dispositivos es **opcional**. Vive detrás de una interfaz de
-almacén de cuatro métodos, en un solo archivo (`almacen/sincronizacion-claude.js`).
+almacén de cuatro métodos, en un solo archivo (`almacen/anfitrion-claude.js`).
 Borrarlo deja la app funcionando igual: guarda en el navegador y lo declara en la barra
 superior (`⚪ Solo este dispositivo`). Nunca se pierde una captura en silencio.
 
@@ -68,7 +68,7 @@ Eso no es una promesa escrita en un README: hay una prueba que recorre `motor/`,
 |---|---|
 | IndexedDB (o localStorage) | siempre — el almacén base, en el dispositivo |
 | Respaldo JSON | exportar/importar; es la mudanza a donde sea |
-| Adaptador de sincronización | opcional; si no está, ni se entera |
+| Adaptador del anfitrión | opcional: sincroniza y entrega el respaldo donde un enlace no basta |
 
 ## Cómo se trabaja
 
