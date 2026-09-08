@@ -7,7 +7,8 @@
 //
 // Uso: node herramientas/humo.mjs
 
-import { readFileSync } from "node:fs";
+import { createServer } from "node:http";
+import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -225,6 +226,86 @@ await marco.locator('[data-vista="hoy"]').click();
 revisar("y borrar de verdad borra", (await marco.locator(".cifra").first().textContent()).trim() === "—");
 revisar("sin un solo error de JavaScript", erroresEncerrada.length === 0, erroresEncerrada.slice(0, 2).join(" | "));
 
+// ── Escenario 3: instalada como app ─────────────────────────────────────────────
+//
+// La carpeta app/ servida por http: es como vive cuando está subida a un hosting. Aquí se
+// comprueba lo que Android e iOS piden para ofrecer "instalar", y lo que de verdad importa:
+// que una vez instalada abra SIN CONEXIÓN. El servidor es el de Node — cero dependencias.
+
+console.log("\n  ── servida por http, como app instalable ──");
+
+const TIPOS_MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".png": "image/png",
+  ".webmanifest": "application/manifest+json",
+};
+
+const servidor = createServer((peticion, respuesta) => {
+  const nombre = decodeURIComponent(peticion.url.split("?")[0]).replace(/^\/+/, "") || "index.html";
+  const ruta = join(RAIZ, "app", nombre);
+  if (!ruta.startsWith(join(RAIZ, "app")) || !existsSync(ruta)) {
+    respuesta.writeHead(404).end("no está");
+    return;
+  }
+  const extension = nombre.slice(nombre.lastIndexOf("."));
+  respuesta.writeHead(200, { "content-type": TIPOS_MIME[extension] || "application/octet-stream" });
+  respuesta.end(readFileSync(ruta));
+});
+
+await new Promise((listo) => servidor.listen(0, "127.0.0.1", listo));
+const puerto = servidor.address().port;
+
+const instalada = await contexto.newPage();
+await instalada.goto(`http://127.0.0.1:${puerto}/index.html`);
+await instalada.waitForSelector(".barra", { timeout: 8000 });
+
+const manifiesto = await instalada.evaluate(async () => {
+  const enlace = document.querySelector('link[rel="manifest"]');
+  if (!enlace) return null;
+  const r = await fetch(enlace.href);
+  return r.ok ? await r.json() : null;
+});
+revisar("el manifest carga y la declara instalable", Boolean(manifiesto) && manifiesto.display === "standalone");
+revisar(
+  "con íconos enmascarables, como piden Android e iOS",
+  Boolean(manifiesto) && manifiesto.icons.length === 2 && manifiesto.icons.every((i) => i.purpose.includes("maskable")),
+);
+
+const medida = await instalada.evaluate(() => new Promise((res) => {
+  const img = new Image();
+  img.onload = () => res(`${img.naturalWidth}x${img.naturalHeight}`);
+  img.onerror = () => res("no carga");
+  img.src = "./icono-512.png";
+}));
+revisar("el ícono existe y mide lo que dice", medida === "512x512", medida);
+
+const registro = await instalada.evaluate(async () => {
+  for (let i = 0; i < 40; i++) {
+    const r = await navigator.serviceWorker.getRegistration();
+    if (r && (r.active || r.installing || r.waiting)) return "sí";
+    await new Promise((s) => setTimeout(s, 100));
+  }
+  return "no";
+});
+revisar("el service worker se registra", registro === "sí");
+
+await instalada.evaluate(() => navigator.serviceWorker.ready);
+await instalada.waitForTimeout(500);
+await contexto.setOffline(true);
+await instalada.reload().catch(() => {});
+revisar("y una vez instalada, abre SIN CONEXIÓN", await instalada.locator(".barra").isVisible().catch(() => false));
+await contexto.setOffline(false);
+
+servidor.close();
+
+// La promesa que no se toca, comprobada al final: el archivo suelto no depende de nada.
+revisar("el archivo autónomo no arrastra manifest ni service worker", (await pagina.locator('link[rel="manifest"]').count()) === 0);
+revisar(
+  "pero sí lleva su ícono incrustado, para iOS",
+  ((await pagina.locator('link[rel="apple-touch-icon"]').getAttribute("href")) || "").startsWith("data:image/png"),
+);
+
 await navegador.close();
-console.log(fallos === 0 ? "\n✓ La app funciona abierta desde el disco, y también donde no se puede guardar.\n" : `\n✗ ${fallos} fallo(s).\n`);
+console.log(fallos === 0 ? "\n✓ Funciona desde el disco, donde no se puede guardar, e instalada sin conexión.\n" : `\n✗ ${fallos} fallo(s).\n`);
 process.exit(fallos ? 1 : 0);

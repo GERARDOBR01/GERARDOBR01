@@ -13,6 +13,7 @@
 // Uso: node herramientas/armar.mjs
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
+import { LOGO_PNG, LOGO_SVG } from "../interfaz/logo-datos.js";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -71,8 +72,12 @@ function limpiar(codigo) {
     .trimEnd();
 }
 
+// Datos del ícono: los usa este armado para escribir los PNG y para incrustarlos, pero no
+// tienen nada que hacer dentro del guion de la app.
+const FUERA_DEL_GUION = new Set(["interfaz/logo-datos.js"]);
+
 // 1) Nadie se queda fuera de la lista por olvido.
-const enLista = new Set(MODULOS.map((m) => (typeof m === "string" ? m : m.ruta)));
+const enLista = new Set([...MODULOS.map((m) => (typeof m === "string" ? m : m.ruta)), ...FUERA_DEL_GUION]);
 for (const carpeta of ["motor", "almacen", "interfaz"]) {
   for (const archivo of readdirSync(join(RAIZ, carpeta)).filter((n) => n.endsWith(".js"))) {
     const ruta = `${carpeta}/${archivo}`;
@@ -126,44 +131,151 @@ const estilos = readFileSync(join(RAIZ, "interfaz/estilos.css"), "utf8");
 const marcado = readFileSync(join(RAIZ, "interfaz/plantilla.html"), "utf8");
 const sello = new Date().toISOString().slice(0, 10);
 
+const DESCRIPCION_CORTA = "Ordena tu quincena y sabe si tus metas de ahorro alcanzan.";
+const FONDO = "#14171A";
+const ACENTO = "#1f8a55";
+
+const png = (tamano) => `data:image/png;base64,${LOGO_PNG[tamano]}`;
+const svgIcono = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG, "utf8").toString("base64")}`;
+
 const encabezado = `<title>${TITULO}</title>
 <meta name="description" content="${DESCRIPCION}">
 <style>
 ${estilos}</style>`;
 
-// Salida A: autónoma. Ésta es la app. Se abre desde el disco, sin servidor y sin red.
+// Lo que convierte una página en una app con ícono propio en el celular.
+const metaApp = `<meta name="theme-color" content="${ACENTO}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="${TITULO}">`;
+
+const guionEnvuelto = `<script>
+${guion}
+</script>`;
+
+// ── Salida A: autónoma. Ésta es la app. Se abre desde el disco, sin servidor y sin red.
+// El ícono va incrustado, así que "Añadir a pantalla de inicio" en iOS ya le pone cara.
 const autonoma = `<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#1f8a55">
+${metaApp}
+<link rel="icon" href="${svgIcono}">
+<link rel="apple-touch-icon" href="${png(180)}">
 ${encabezado}
 </head>
 <body>
 <!-- Armado el ${sello} desde finanzas/. No editar a mano: se regenera con armar.mjs. -->
 ${marcado}
+${guionEnvuelto}
+</body>
+</html>
+`;
+
+// ── Salida B: la misma app para publicar donde el entorno pone su propio envoltorio.
+const publicable = `${encabezado}
+${marcado}
+${guionEnvuelto}
+`;
+
+// ── Salida C: la carpeta que se sube a un hosting. Misma app, más lo que Android e iOS
+// piden para instalarla: manifest, íconos de verdad y un service worker que la deja abrir
+// sin conexión. Nada de esto lo necesita la salida A para funcionar.
+const manifiesto = {
+  name: TITULO,
+  short_name: TITULO,
+  description: DESCRIPCION_CORTA,
+  lang: "es-MX",
+  start_url: "./",
+  scope: "./",
+  display: "standalone",
+  orientation: "portrait",
+  background_color: FONDO,
+  theme_color: ACENTO,
+  icons: [
+    { src: "./icono-192.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+    { src: "./icono-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+  ],
+};
+
+const hospedada = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+${metaApp}
+<link rel="icon" href="./icono-192.png">
+<link rel="apple-touch-icon" href="./icono-180.png">
+<link rel="manifest" href="./manifest.webmanifest">
+${encabezado}
+</head>
+<body>
+<!-- Armado el ${sello} desde finanzas/. No editar a mano: se regenera con armar.mjs. -->
+${marcado}
+${guionEnvuelto}
 <script>
-${guion}
+// El service worker es un extra de esta salida: solo sirve para poder abrirla sin conexión
+// una vez instalada. Si no está o falla, la app funciona exactamente igual.
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function () {});
+  });
+}
 </script>
 </body>
 </html>
 `;
 
-// Salida B: la misma app para publicar donde el entorno pone su propio envoltorio.
-const publicable = `${encabezado}
-${marcado}
-<script>
-${guion}
-</script>
+const serviceWorker = `// Service worker de Quincena — armado el ${sello}.
+//
+// Guarda la app para poder abrirla sin conexión. No guarda NINGÚN dato tuyo: los movimientos
+// viven en el almacenamiento del navegador, que esto ni toca.
+
+const CACHE = "quincena-${sello}";
+const ARCHIVOS = ["./", "./index.html", "./manifest.webmanifest", "./icono-192.png", "./icono-512.png", "./icono-180.png"];
+
+self.addEventListener("install", (evento) => {
+  evento.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ARCHIVOS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener("activate", (evento) => {
+  // Al publicar una versión nueva, las viejas se tiran: nada de servir una app de hace meses.
+  evento.waitUntil(
+    caches.keys()
+      .then((llaves) => Promise.all(llaves.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
+  );
+});
+
+self.addEventListener("fetch", (evento) => {
+  if (evento.request.method !== "GET") return;
+  evento.respondWith(
+    fetch(evento.request)
+      .then((respuesta) => {
+        const copia = respuesta.clone();
+        caches.open(CACHE).then((cache) => cache.put(evento.request, copia)).catch(() => {});
+        return respuesta;
+      })
+      .catch(() => caches.match(evento.request).then((r) => r || caches.match("./index.html"))),
+  );
+});
 `;
 
 mkdirSync(join(RAIZ, "app"), { recursive: true });
 writeFileSync(join(RAIZ, "app/finanzas.html"), autonoma);
 writeFileSync(join(RAIZ, "app/finanzas.artifact.html"), publicable);
+writeFileSync(join(RAIZ, "app/index.html"), hospedada);
+writeFileSync(join(RAIZ, "app/manifest.webmanifest"), JSON.stringify(manifiesto, null, 2));
+writeFileSync(join(RAIZ, "app/sw.js"), serviceWorker);
+for (const tamano of [180, 192, 512]) {
+  writeFileSync(join(RAIZ, `app/icono-${tamano}.png`), Buffer.from(LOGO_PNG[tamano], "base64"));
+}
 
 const kb = (t) => `${(Buffer.byteLength(t) / 1024).toFixed(1)} KB`;
 console.log(`\n✓ Armado (${MODULOS.length - 1}+ módulos, ${declarados.size} nombres, 0 dependencias)`);
 console.log(`  app/finanzas.html           ${kb(autonoma)}  ← autónoma: ábrela desde el disco`);
-console.log(`  app/finanzas.artifact.html  ${kb(publicable)}\n`);
+console.log(`  app/finanzas.artifact.html  ${kb(publicable)}`);
+console.log(`  app/index.html + manifest + sw + íconos  ← la carpeta para subir a un hosting\n`);

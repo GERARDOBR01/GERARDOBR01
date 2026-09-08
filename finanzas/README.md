@@ -4,10 +4,12 @@ App de finanzas personales. Ordena la quincena, controla los gastos y dice —co
 números— si una meta de ahorro de verdad alcanza o no.
 
 **Un archivo HTML que se abre solo.** Sin servidor, sin instalar nada, sin red. Se puede
-abrir desde el disco, desde el celular o desde cualquier hosting estático.
+abrir desde el disco, desde el celular o desde cualquier hosting estático — y subida a uno,
+se instala en el teléfono como una app más, con su ícono y funcionando sin conexión.
 
 ```
 finanzas/app/finanzas.html     ← esto es la app. Ábrelo y ya.
+finanzas/app/                  ← esta carpeta es lo que se sube a un hosting
 ```
 
 ## Lo que hace
@@ -18,7 +20,7 @@ finanzas/app/finanzas.html     ← esto es la app. Ábrelo y ya.
 | **Historial** | Mes por mes: lo que entró, lo que salió y lo que se apartó. Cualquier movimiento se corrige tocándolo |
 | **Presupuesto** | Cuánto va gastado por categoría contra su tope, con semáforo |
 | **Metas** | Cuánto hay que apartar por quincena — y si eso cabe en la capacidad real de ahorro |
-| **Fijos** | Qué vence, qué ya se pagó y cuánto se debe |
+| **Fijos** | Qué vence, qué ya se pagó y cuánto se debe — con la frecuencia real de cada pago |
 | **Ajustes** | Ingreso, ciclo, fondo de emergencia, respaldo en JSON |
 
 Cuatro cosas mueven dinero y todas se capturan igual, desde el botón `+`: **gasto**,
@@ -45,7 +47,12 @@ NO_ALCANZA — requiere $3,750.00 por quincena, capacidad estimada $530.00 — f
 - Un fondo de emergencia a medias va `AJUSTADO`, no `NO_ALCANZA`: no es un plan que no
   cierre, es un ahorro en progreso. La urgencia se dice en la severidad.
 - **Una deuda sin tasa capturada no proyecta intereses.** Reporta el saldo y declara que
-  va sin ellos. Inventar una tasa "típica" daría un número creíble y falso.
+  va sin ellos. Inventar una tasa "típica" daría un número creíble y falso. Con la tasa
+  puesta sí proyecta —meses, intereses totales y su supuesto escrito— y dice en voz alta lo
+  que casi nadie dice: si tu pago no cubre ni el interés del mes, **esa deuda nunca baja**.
+- **Un pago anual no es un gasto mensual.** Cada fijo tiene su frecuencia, y el total sale en
+  dos números que no son el mismo: el promedio mensualizado (lo que hay que ir apartando) y
+  lo que de verdad se paga este mes.
 
 **3. Los datos reales nunca entran al repositorio.** Lo que se versiona es el motor. Los
 montos viven en el dispositivo, y el respaldo en JSON es del usuario.
@@ -82,12 +89,26 @@ Eso no es una promesa escrita en un README: hay una prueba que recorre `motor/`,
 | Respaldo JSON | exportar/importar; es la mudanza a donde sea |
 | Adaptador del anfitrión | opcional: sincroniza y entrega el respaldo donde un enlace no basta |
 
+## Instalarla en el teléfono
+
+La carpeta `app/` subida a cualquier hosting con https es una app instalable: manifest,
+íconos enmascarables y un service worker que la deja abrir sin conexión. En el celular,
+"Añadir a pantalla de inicio" y queda el anillo verde entre las demás apps.
+
+El ícono se dibuja en `interfaz/logo.svg` y se rasteriza **una sola vez** con
+`node herramientas/logo.mjs`, que deja los PNG en base64 dentro de `interfaz/logo-datos.js`.
+Por eso el armado sigue sin depender de nada: solo decodifica.
+
+Y la regla no se toca: `app/finanzas.html` sigue siendo un archivo suelto que abre desde el
+disco, sin manifest ni service worker que apunten a archivos que no existen.
+
 ## Cómo se trabaja
 
 ```bash
 node --test pruebas/*.test.js      # la suite: sin red, sin API, sin gastar un peso
-node herramientas/armar.mjs        # arma app/finanzas.html
-node herramientas/humo.mjs         # abre la app en un navegador de verdad (opcional)
+node herramientas/armar.mjs        # arma las tres salidas en app/
+node herramientas/humo.mjs         # navegador real: disco, sin almacenamiento, e instalada
+node herramientas/logo.mjs         # solo si cambia el logo
 ```
 
 El armado **falla ruidosamente** ante lo que produciría un HTML roto en silencio: un
@@ -100,10 +121,10 @@ lee del `<title>`.
 ## Estructura
 
 ```
-motor/       cálculo puro, sin DOM: dinero, ciclos, presupuesto, ahorro, metas, fijos
+motor/       cálculo puro, sin DOM: dinero, ciclos, presupuesto, ahorro, metas, fijos, deudas
 almacen/     persistencia detrás de 4 métodos, con adaptadores intercambiables
-interfaz/    plantilla, estilos y render
+interfaz/    plantilla, estilos, render y el logo
 pruebas/     node --test, incluida la prueba de independencia
-herramientas/armar.mjs (build) y humo.mjs (prueba de navegador)
+herramientas/armar.mjs (build), humo.mjs (navegador) y logo.mjs (íconos)
 app/         la salida generada — no editar a mano
 ```
