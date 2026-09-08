@@ -1468,46 +1468,113 @@ function importar(texto) {
 // IndexedDB primero (aguanta años de movimientos y sobrevive a recargas), localStorage si
 // no está disponible, y memoria como último recurso. El nivel que se logró se DECLARA:
 // una app que guarda en memoria y no lo dice es una app que te va a perder los datos.
+//
+// Cuidado con las guardas: en un origen aislado (un iframe sin `allow-same-origin`, o un
+// navegador con los datos de sitio bloqueados) **hasta leer** `window.localStorage` lanza
+// SecurityError. Por eso aquí no se pregunta con `typeof`: se intenta de verdad, dentro de
+// un try, y si truena se baja al siguiente nivel. Este archivo no puede lanzar nunca.
 
 const BASE = "finanzas";
 const ALMACEN = "documento";
 const LLAVE = "raiz";
 
+/** Lee una global sin que el acceso pueda tumbar la app. Devuelve null si ni mirarla se puede. */
+function leerGlobal(nombre) {
+  try {
+    return globalThis[nombre] || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function abrirIndexedDB() {
   return new Promise((resolver) => {
-    if (typeof indexedDB === "undefined") return resolver(null);
+    const idb = leerGlobal("indexedDB");
+    if (!idb) return resolver(null);
+
     let peticion;
     try {
-      peticion = indexedDB.open(BASE, 1);
+      peticion = idb.open(BASE, 1);
     } catch (e) {
       return resolver(null);
     }
+
+    // Si la base no responde (permisos, versión trabada), no se espera para siempre.
+    const rendirse = setTimeout(() => resolver(null), 3000);
+    const terminar = (valor) => {
+      clearTimeout(rendirse);
+      resolver(valor);
+    };
+
     peticion.onupgradeneeded = () => {
       const bd = peticion.result;
       if (!bd.objectStoreNames.contains(ALMACEN)) bd.createObjectStore(ALMACEN);
     };
-    peticion.onsuccess = () => resolver(peticion.result);
-    peticion.onerror = () => resolver(null);
-    peticion.onblocked = () => resolver(null);
+    peticion.onsuccess = () => terminar(peticion.result);
+    peticion.onerror = () => terminar(null);
+    peticion.onblocked = () => terminar(null);
   });
 }
 
 function operar(bd, modo, accion) {
   return new Promise((resolver, rechazar) => {
-    const tx = bd.transaction(ALMACEN, modo);
-    const peticion = accion(tx.objectStore(ALMACEN));
-    peticion.onsuccess = () => resolver(peticion.result);
-    peticion.onerror = () => rechazar(peticion.error);
+    try {
+      const tx = bd.transaction(ALMACEN, modo);
+      const peticion = accion(tx.objectStore(ALMACEN));
+      peticion.onsuccess = () => resolver(peticion.result);
+      peticion.onerror = () => rechazar(peticion.error || new Error("La base local rechazó la operación."));
+    } catch (e) {
+      rechazar(e);
+    }
   });
 }
 
+/** localStorage no basta con que exista: tiene que dejar escribir (modo privado, cuotas). */
+function localStorageUtilizable() {
+  const ls = leerGlobal("localStorage");
+  if (!ls) return null;
+  try {
+    const prueba = `${BASE}:prueba`;
+    ls.setItem(prueba, "1");
+    ls.removeItem(prueba);
+    return ls;
+  } catch (e) {
+    return null;
+  }
+}
+
+function enMemoria(motivo) {
+  let memoria = null;
+  return {
+    tipo: "memoria",
+    duradero: false,
+    motivo,
+    async cargar() {
+      return memoria;
+    },
+    async guardar(datos) {
+      memoria = datos;
+    },
+    async borrar() {
+      memoria = null;
+    },
+  };
+}
+
+/** Devuelve siempre un almacén utilizable. Nunca lanza; en el peor caso, memoria declarada. */
 async function abrirLocal() {
-  const bd = await abrirIndexedDB();
+  let bd = null;
+  try {
+    bd = await abrirIndexedDB();
+  } catch (e) {
+    bd = null;
+  }
 
   if (bd) {
     return {
       tipo: "indexeddb",
       duradero: true,
+      motivo: null,
       async cargar() {
         try {
           return (await operar(bd, "readonly", (s) => s.get(LLAVE))) || null;
@@ -1524,42 +1591,31 @@ async function abrirLocal() {
     };
   }
 
-  if (typeof localStorage !== "undefined") {
+  const ls = localStorageUtilizable();
+  if (ls) {
     return {
       tipo: "localstorage",
       duradero: true,
+      motivo: null,
       async cargar() {
         try {
-          const texto = localStorage.getItem(`${BASE}:${LLAVE}`);
+          const texto = ls.getItem(`${BASE}:${LLAVE}`);
           return texto ? JSON.parse(texto) : null;
         } catch (e) {
           return null;
         }
       },
       async guardar(datos) {
-        localStorage.setItem(`${BASE}:${LLAVE}`, JSON.stringify(datos));
+        ls.setItem(`${BASE}:${LLAVE}`, JSON.stringify(datos));
       },
       async borrar() {
-        localStorage.removeItem(`${BASE}:${LLAVE}`);
+        ls.removeItem(`${BASE}:${LLAVE}`);
       },
     };
   }
 
   // Sin almacenamiento del navegador: la app funciona, pero al cerrar se pierde. Se avisa.
-  let memoria = null;
-  return {
-    tipo: "memoria",
-    duradero: false,
-    async cargar() {
-      return memoria;
-    },
-    async guardar(datos) {
-      memoria = datos;
-    },
-    async borrar() {
-      memoria = null;
-    },
-  };
+  return enMemoria("Este navegador no deja guardar datos: al cerrar la pestaña se pierde lo capturado.");
 }
 
 // ═══ almacen/almacen.js ═══
@@ -1585,7 +1641,13 @@ const MODOS = {
 };
 
 async function abrirAlmacen(opciones = {}) {
-  const local = await abrirLocal();
+  // Abrir el almacén NUNCA falla: en el peor de los casos se trabaja en memoria y se dice.
+  let local;
+  try {
+    local = opciones.local || (await abrirLocal());
+  } catch (e) {
+    local = enMemoria("No se pudo abrir el almacenamiento de este navegador.");
+  }
 
   // El adaptador de sincronización es opcional: si su archivo no está, esto no falla.
   let espejo = null;
@@ -1603,7 +1665,10 @@ async function abrirAlmacen(opciones = {}) {
   const estado = {
     modo: espejo ? MODOS.SINCRONIZADO : local.duradero ? MODOS.LOCAL : MODOS.EFIMERO,
     tipoLocal: local.tipo,
-    motivo: null,
+    motivo: local.motivo || null,
+    // Se enciende cuando se leyeron datos que este código no sabe abrir (versión más
+    // nueva). Mientras esté encendido NO se escribe: escribir sería borrarlos.
+    bloqueado: false,
     aviso: null,
   };
 
@@ -1632,9 +1697,12 @@ async function abrirAlmacen(opciones = {}) {
 
       const resultado = migrar(elegido);
       if (!resultado.ok) {
-        // Ni se abre a medias ni se borra: se conserva y se explica.
+        // Ni se abre a medias ni se borra: se conserva, se explica y se traba la escritura.
+        estado.bloqueado = true;
+        estado.motivo = resultado.motivo;
         return { datos: datosVacios(hoyISO()), nuevo: true, aviso: resultado.motivo, bloqueado: true };
       }
+      estado.bloqueado = false;
 
       // El que iba atrás se pone al día con el que ganó.
       if (elegido === crudoEspejo && crudoEspejo) await local.guardar(resultado.datos);
@@ -1643,6 +1711,13 @@ async function abrirAlmacen(opciones = {}) {
     },
 
     async guardar(datos) {
+      if (estado.bloqueado) {
+        throw new Error(
+          "No se guarda nada mientras haya datos que esta versión no sabe abrir: se perderían. " +
+            "Actualiza la app, o descarga un respaldo y empieza de cero a propósito.",
+        );
+      }
+
       const sello = { ...normalizar(datos), actualizado: new Date().toISOString() };
       await local.guardar(sello); // primero lo seguro
 
@@ -1665,6 +1740,8 @@ async function abrirAlmacen(opciones = {}) {
 
     async borrarTodo() {
       await local.borrar();
+      estado.bloqueado = false; // borrar es una decisión explícita: destraba la escritura
+      estado.motivo = local.motivo || null;
     },
   };
 }
@@ -2194,7 +2271,7 @@ function vistaAjustes() {
 
 let cerrarHoja = null;
 
-function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra = "" }) {
+function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra = "", peligro = false }) {
   const contenedor = document.getElementById("hojas");
 
   contenedor.innerHTML = `<div class="velo" data-velo="1"><form class="hoja" novalidate>
@@ -2204,7 +2281,7 @@ function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra 
       ${extra}
       <div class="acciones">
         <button type="button" class="boton tenue" data-accion="cerrar-hoja">Cancelar</button>
-        <button type="submit" class="boton">${esc(textoGuardar)}</button>
+        <button type="submit" class="boton${peligro ? " peligro" : ""}">${esc(textoGuardar)}</button>
       </div>
     </form></div>`;
 
@@ -2246,7 +2323,12 @@ function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra 
       }
     }
 
-    const problema = await alGuardar(valores);
+    let problema = null;
+    try {
+      problema = await alGuardar(valores);
+    } catch (e) {
+      problema = (e && e.message) || "No se pudo guardar.";
+    }
     if (problema) return error(problema);
     if (cerrarHoja) cerrarHoja();
   });
@@ -2257,6 +2339,21 @@ function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra 
   function error(texto) {
     formulario.querySelector("#error-hoja").innerHTML = `<div class="aviso malo">${esc(texto)}</div>`;
   }
+}
+
+/**
+ * Confirmación propia. No se usa `confirm()` del navegador: en un contexto aislado
+ * (un iframe restringido, por ejemplo) lanza SecurityError y se lleva la acción por delante.
+ */
+function confirmar({ titulo, mensaje, textoBoton, alConfirmar }) {
+  abrirHoja({
+    titulo,
+    campos: [],
+    textoGuardar: textoBoton,
+    peligro: true,
+    extra: `<p class="rotulo" style="margin:0 0 4px">${esc(mensaje)}</p>`,
+    alGuardar: alConfirmar,
+  });
 }
 
 function campoHTML(campo) {
@@ -2302,10 +2399,23 @@ function opcionesCategorias() {
 // --- Acciones ---
 
 async function guardar(datos) {
-  app.datos = datos;
+  if (!app.almacen) throw new Error("La app todavía está abriendo tus datos. Intenta otra vez en un segundo.");
+
+  const previos = app.datos;
+  app.datos = datos; // optimista: la pantalla responde al instante
   render();
-  const sello = await app.almacen.guardar(datos);
-  app.datos = sello;
+
+  try {
+    app.datos = await app.almacen.guardar(datos);
+    app.aviso = null;
+  } catch (e) {
+    // Nada de fallar en silencio: se revierte la pantalla y se dice qué pasó.
+    app.datos = previos;
+    app.aviso = `No se pudo guardar: ${e.message}`;
+    app.bloqueado = true;
+    render();
+    throw e;
+  }
   render();
 }
 
@@ -2445,9 +2555,16 @@ const acciones = {
     hojaMeta(app.datos.metas.find((m) => m.id === el.dataset.id));
   },
 
-  async "borrar-meta"(el) {
-    if (!confirm("¿Borrar esta meta? Lo que ya apartaste no se borra.")) return;
-    await guardar({ ...app.datos, metas: app.datos.metas.filter((m) => m.id !== el.dataset.id) });
+  "borrar-meta"(el) {
+    const meta = app.datos.metas.find((m) => m.id === el.dataset.id);
+    confirmar({
+      titulo: `¿Borrar "${meta ? meta.nombre : "la meta"}"?`,
+      mensaje: "Lo que ya apartaste no se borra: sigue contando como ahorro.",
+      textoBoton: "Sí, borrar la meta",
+      alConfirmar: async () => {
+        await guardar({ ...app.datos, metas: app.datos.metas.filter((m) => m.id !== el.dataset.id) });
+      },
+    });
   },
 
   apartar(el) {
@@ -2559,12 +2676,19 @@ const acciones = {
     entrada.click();
   },
 
-  async "borrar-todo"() {
-    if (!confirm("¿Borrar TODO? Esto no se puede deshacer. Descarga primero un respaldo si lo quieres conservar.")) return;
-    await app.almacen.borrarTodo();
-    await guardar(datosVacios(app.hoy));
-    app.aviso = "Todo borrado.";
-    render();
+  "borrar-todo"() {
+    confirmar({
+      titulo: "¿Borrar TODO?",
+      mensaje: "Esto no se puede deshacer. Si lo quieres conservar, descarga primero un respaldo.",
+      textoBoton: "Sí, borrar todo",
+      alConfirmar: async () => {
+        await app.almacen.borrarTodo();
+        app.bloqueado = false;
+        await guardar(datosVacios(app.hoy));
+        app.aviso = "Todo borrado.";
+        render();
+      },
+    });
   },
 
   "cerrar-hoja"() {
@@ -2664,11 +2788,21 @@ async function arrancar() {
 
   render(); // pinta de inmediato: la app no espera al almacenamiento para existir
 
-  app.almacen = await abrirAlmacen();
-  const { datos, aviso, bloqueado } = await app.almacen.cargar();
-  app.datos = datos;
-  app.aviso = aviso;
-  app.bloqueado = Boolean(bloqueado);
+  try {
+    app.almacen = await abrirAlmacen();
+    const { datos, aviso, bloqueado } = await app.almacen.cargar();
+    app.datos = datos;
+    app.aviso = aviso;
+    app.bloqueado = Boolean(bloqueado);
+  } catch (e) {
+    app.aviso = `No se pudo abrir el almacenamiento: ${e.message} Puedes seguir usando la app, pero descarga un respaldo antes de cerrar.`;
+  }
+
+  // Si ya se sabe que esto no va a guardar, se dice de entrada — no cuando ya se perdió algo.
+  const estado = app.almacen ? app.almacen.estado() : null;
+  if (estado && estado.modo === MODOS.EFIMERO && !app.aviso) {
+    app.aviso = estado.motivo || "Este navegador no deja guardar datos: descarga un respaldo antes de cerrar la pestaña.";
+  }
   render();
 
   // Si otro dispositivo escribe, esta pantalla se entera.

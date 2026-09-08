@@ -7,6 +7,7 @@
 //
 // Uso: node herramientas/humo.mjs
 
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -114,6 +115,44 @@ revisar("y aparece en 'Por pagar' del panel", (await pagina.textContent("main"))
 
 revisar("ni un solo error de JavaScript", errores.length === 0, errores.slice(0, 3).join(" | "));
 
+// ── Escenario 2: un navegador que NO deja guardar nada ──────────────────────────
+//
+// Un iframe sin `allow-same-origin` deja el documento en un origen opaco: ahí, hasta LEER
+// window.localStorage lanza SecurityError, y confirm() también. Es el mismo terreno que el
+// modo privado de algunos navegadores o los datos de sitio bloqueados. La app tiene que
+// seguir usable y DECIRLO — nunca fingir que guardó.
+
+console.log("\n  ── en un navegador que no deja guardar (origen aislado) ──");
+const hoja = readFileSync(join(RAIZ, "app/finanzas.html"), "utf8");
+const encerrada = await contexto.newPage();
+const erroresEncerrada = [];
+encerrada.on("pageerror", (e) => erroresEncerrada.push(e.message.slice(0, 120)));
+await encerrada.setContent('<iframe id="m" sandbox="allow-scripts allow-forms" style="width:390px;height:800px;border:0"></iframe>');
+await encerrada.evaluate((h) => { document.getElementById("m").srcdoc = h; }, hoja);
+const marco = encerrada.frameLocator("#m");
+await marco.locator(".barra").waitFor({ timeout: 8000 });
+
+revisar("arranca igual", await marco.locator(".cifra").first().isVisible());
+const modo = (await marco.locator(".estado").textContent()).trim();
+revisar("NO miente sobre dónde guarda", modo.includes("Sin guardar"), modo);
+revisar("avisa por su cuenta, sin que se lo pregunten", (await marco.locator(".aviso").first().textContent()).includes("no deja guardar"));
+
+await marco.locator('[data-accion="editar-ingreso"]').click();
+await marco.locator('[data-clave="monto"]').fill("8000");
+await marco.locator('button[type="submit"]').click();
+await marco.locator(".velo").waitFor({ state: "detached", timeout: 5000 });
+revisar("se puede seguir capturando (en memoria)", (await marco.locator(".cifra").first().textContent()).trim() === "$8,000.00");
+
+// Borrar todo usaba confirm(), que aquí lanza SecurityError.
+await marco.locator('[data-vista="ajustes"]').click();
+await marco.locator('[data-accion="borrar-todo"]').click();
+revisar("la confirmación es propia y aparece (confirm() aquí lanza)", await marco.locator(".hoja").isVisible());
+await marco.locator('button[type="submit"]').click();
+await marco.locator(".velo").waitFor({ state: "detached", timeout: 5000 });
+await marco.locator('[data-vista="hoy"]').click();
+revisar("y borrar de verdad borra", (await marco.locator(".cifra").first().textContent()).trim() === "—");
+revisar("sin un solo error de JavaScript", erroresEncerrada.length === 0, erroresEncerrada.slice(0, 2).join(" | "));
+
 await navegador.close();
-console.log(fallos === 0 ? "\n✓ La app funciona abierta desde el disco.\n" : `\n✗ ${fallos} fallo(s).\n`);
+console.log(fallos === 0 ? "\n✓ La app funciona abierta desde el disco, y también donde no se puede guardar.\n" : `\n✗ ${fallos} fallo(s).\n`);
 process.exit(fallos ? 1 : 0);

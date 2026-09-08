@@ -413,7 +413,7 @@ function vistaAjustes() {
 
 let cerrarHoja = null;
 
-function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra = "" }) {
+function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra = "", peligro = false }) {
   const contenedor = document.getElementById("hojas");
 
   contenedor.innerHTML = `<div class="velo" data-velo="1"><form class="hoja" novalidate>
@@ -423,7 +423,7 @@ function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra 
       ${extra}
       <div class="acciones">
         <button type="button" class="boton tenue" data-accion="cerrar-hoja">Cancelar</button>
-        <button type="submit" class="boton">${esc(textoGuardar)}</button>
+        <button type="submit" class="boton${peligro ? " peligro" : ""}">${esc(textoGuardar)}</button>
       </div>
     </form></div>`;
 
@@ -465,7 +465,12 @@ function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra 
       }
     }
 
-    const problema = await alGuardar(valores);
+    let problema = null;
+    try {
+      problema = await alGuardar(valores);
+    } catch (e) {
+      problema = (e && e.message) || "No se pudo guardar.";
+    }
     if (problema) return error(problema);
     if (cerrarHoja) cerrarHoja();
   });
@@ -476,6 +481,21 @@ function abrirHoja({ titulo, campos, textoGuardar = "Guardar", alGuardar, extra 
   function error(texto) {
     formulario.querySelector("#error-hoja").innerHTML = `<div class="aviso malo">${esc(texto)}</div>`;
   }
+}
+
+/**
+ * Confirmación propia. No se usa `confirm()` del navegador: en un contexto aislado
+ * (un iframe restringido, por ejemplo) lanza SecurityError y se lleva la acción por delante.
+ */
+function confirmar({ titulo, mensaje, textoBoton, alConfirmar }) {
+  abrirHoja({
+    titulo,
+    campos: [],
+    textoGuardar: textoBoton,
+    peligro: true,
+    extra: `<p class="rotulo" style="margin:0 0 4px">${esc(mensaje)}</p>`,
+    alGuardar: alConfirmar,
+  });
 }
 
 function campoHTML(campo) {
@@ -521,10 +541,23 @@ function opcionesCategorias() {
 // --- Acciones ---
 
 async function guardar(datos) {
-  app.datos = datos;
+  if (!app.almacen) throw new Error("La app todavía está abriendo tus datos. Intenta otra vez en un segundo.");
+
+  const previos = app.datos;
+  app.datos = datos; // optimista: la pantalla responde al instante
   render();
-  const sello = await app.almacen.guardar(datos);
-  app.datos = sello;
+
+  try {
+    app.datos = await app.almacen.guardar(datos);
+    app.aviso = null;
+  } catch (e) {
+    // Nada de fallar en silencio: se revierte la pantalla y se dice qué pasó.
+    app.datos = previos;
+    app.aviso = `No se pudo guardar: ${e.message}`;
+    app.bloqueado = true;
+    render();
+    throw e;
+  }
   render();
 }
 
@@ -664,9 +697,16 @@ const acciones = {
     hojaMeta(app.datos.metas.find((m) => m.id === el.dataset.id));
   },
 
-  async "borrar-meta"(el) {
-    if (!confirm("¿Borrar esta meta? Lo que ya apartaste no se borra.")) return;
-    await guardar({ ...app.datos, metas: app.datos.metas.filter((m) => m.id !== el.dataset.id) });
+  "borrar-meta"(el) {
+    const meta = app.datos.metas.find((m) => m.id === el.dataset.id);
+    confirmar({
+      titulo: `¿Borrar "${meta ? meta.nombre : "la meta"}"?`,
+      mensaje: "Lo que ya apartaste no se borra: sigue contando como ahorro.",
+      textoBoton: "Sí, borrar la meta",
+      alConfirmar: async () => {
+        await guardar({ ...app.datos, metas: app.datos.metas.filter((m) => m.id !== el.dataset.id) });
+      },
+    });
   },
 
   apartar(el) {
@@ -778,12 +818,19 @@ const acciones = {
     entrada.click();
   },
 
-  async "borrar-todo"() {
-    if (!confirm("¿Borrar TODO? Esto no se puede deshacer. Descarga primero un respaldo si lo quieres conservar.")) return;
-    await app.almacen.borrarTodo();
-    await guardar(datosVacios(app.hoy));
-    app.aviso = "Todo borrado.";
-    render();
+  "borrar-todo"() {
+    confirmar({
+      titulo: "¿Borrar TODO?",
+      mensaje: "Esto no se puede deshacer. Si lo quieres conservar, descarga primero un respaldo.",
+      textoBoton: "Sí, borrar todo",
+      alConfirmar: async () => {
+        await app.almacen.borrarTodo();
+        app.bloqueado = false;
+        await guardar(datosVacios(app.hoy));
+        app.aviso = "Todo borrado.";
+        render();
+      },
+    });
   },
 
   "cerrar-hoja"() {
@@ -883,11 +930,21 @@ export async function arrancar() {
 
   render(); // pinta de inmediato: la app no espera al almacenamiento para existir
 
-  app.almacen = await abrirAlmacen();
-  const { datos, aviso, bloqueado } = await app.almacen.cargar();
-  app.datos = datos;
-  app.aviso = aviso;
-  app.bloqueado = Boolean(bloqueado);
+  try {
+    app.almacen = await abrirAlmacen();
+    const { datos, aviso, bloqueado } = await app.almacen.cargar();
+    app.datos = datos;
+    app.aviso = aviso;
+    app.bloqueado = Boolean(bloqueado);
+  } catch (e) {
+    app.aviso = `No se pudo abrir el almacenamiento: ${e.message} Puedes seguir usando la app, pero descarga un respaldo antes de cerrar.`;
+  }
+
+  // Si ya se sabe que esto no va a guardar, se dice de entrada — no cuando ya se perdió algo.
+  const estado = app.almacen ? app.almacen.estado() : null;
+  if (estado && estado.modo === MODOS.EFIMERO && !app.aviso) {
+    app.aviso = estado.motivo || "Este navegador no deja guardar datos: descarga un respaldo antes de cerrar la pestaña.";
+  }
   render();
 
   // Si otro dispositivo escribe, esta pantalla se entera.

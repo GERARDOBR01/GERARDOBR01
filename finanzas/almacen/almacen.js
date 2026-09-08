@@ -9,7 +9,7 @@
 // modo baja a "solo este dispositivo" con su motivo: nunca se pierde una captura en
 // silencio.
 
-import { abrirLocal } from "./local.js";
+import { abrirLocal, enMemoria } from "./local.js";
 import { migrar } from "../motor/migraciones.js";
 import { datosVacios, normalizar } from "../motor/modelo.js";
 import { hoyISO, mesDe } from "../motor/ciclo.js";
@@ -21,7 +21,13 @@ export const MODOS = {
 };
 
 export async function abrirAlmacen(opciones = {}) {
-  const local = await abrirLocal();
+  // Abrir el almacén NUNCA falla: en el peor de los casos se trabaja en memoria y se dice.
+  let local;
+  try {
+    local = opciones.local || (await abrirLocal());
+  } catch (e) {
+    local = enMemoria("No se pudo abrir el almacenamiento de este navegador.");
+  }
 
   // El adaptador de sincronización es opcional: si su archivo no está, esto no falla.
   let espejo = null;
@@ -39,7 +45,10 @@ export async function abrirAlmacen(opciones = {}) {
   const estado = {
     modo: espejo ? MODOS.SINCRONIZADO : local.duradero ? MODOS.LOCAL : MODOS.EFIMERO,
     tipoLocal: local.tipo,
-    motivo: null,
+    motivo: local.motivo || null,
+    // Se enciende cuando se leyeron datos que este código no sabe abrir (versión más
+    // nueva). Mientras esté encendido NO se escribe: escribir sería borrarlos.
+    bloqueado: false,
     aviso: null,
   };
 
@@ -68,9 +77,12 @@ export async function abrirAlmacen(opciones = {}) {
 
       const resultado = migrar(elegido);
       if (!resultado.ok) {
-        // Ni se abre a medias ni se borra: se conserva y se explica.
+        // Ni se abre a medias ni se borra: se conserva, se explica y se traba la escritura.
+        estado.bloqueado = true;
+        estado.motivo = resultado.motivo;
         return { datos: datosVacios(hoyISO()), nuevo: true, aviso: resultado.motivo, bloqueado: true };
       }
+      estado.bloqueado = false;
 
       // El que iba atrás se pone al día con el que ganó.
       if (elegido === crudoEspejo && crudoEspejo) await local.guardar(resultado.datos);
@@ -79,6 +91,13 @@ export async function abrirAlmacen(opciones = {}) {
     },
 
     async guardar(datos) {
+      if (estado.bloqueado) {
+        throw new Error(
+          "No se guarda nada mientras haya datos que esta versión no sabe abrir: se perderían. " +
+            "Actualiza la app, o descarga un respaldo y empieza de cero a propósito.",
+        );
+      }
+
       const sello = { ...normalizar(datos), actualizado: new Date().toISOString() };
       await local.guardar(sello); // primero lo seguro
 
@@ -101,6 +120,8 @@ export async function abrirAlmacen(opciones = {}) {
 
     async borrarTodo() {
       await local.borrar();
+      estado.bloqueado = false; // borrar es una decisión explícita: destraba la escritura
+      estado.motivo = local.motivo || null;
     },
   };
 }
