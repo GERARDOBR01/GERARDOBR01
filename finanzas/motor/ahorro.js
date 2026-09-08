@@ -10,6 +10,7 @@
 import { prorratear, formatear } from "./dinero.js";
 import { cicloDe, mesDe, vencimientoEnMes, entre } from "./ciclo.js";
 import { TIPOS, movimientosEntre, suma } from "./modelo.js";
+import { venceEnMes, montoMensualizado } from "./fijos.js";
 import { ESTADOS, SEVERIDADES, veredicto, sinDatos } from "./veredicto.js";
 
 /** Días corridos del ciclo antes de aceptar proyectar un ritmo de gasto. */
@@ -41,7 +42,7 @@ export function fijosDelCiclo(datos, ciclo) {
   const pagados = new Set(movimientos.filter((m) => m.fijoId).map((m) => m.fijoId));
 
   const enCiclo = datos.fijos
-    .filter((f) => f.activo)
+    .filter((f) => f.activo && venceEnMes(f, mes))
     .map((f) => ({ fijo: f, fecha: vencimientoEnMes(mes, f.diaCorte) }))
     .filter((v) => entre(v.fecha, ciclo.inicio, ciclo.fin));
 
@@ -164,7 +165,8 @@ export function capacidadPorCiclo(datos, iso, topesDelMes) {
   }
 
   const ciclosPorMes = (datos.perfil.cortes || []).length + 1;
-  const fijosMes = datos.fijos.filter((f) => f.activo && f.monto !== null).reduce((t, f) => t + f.monto, 0);
+  // El promedio mensual, no lo que toca este mes: un seguro anual hay que irlo apartando.
+  const fijosMes = datos.fijos.filter((f) => f.activo && f.monto !== null).reduce((t, f) => t + montoMensualizado(f), 0);
   const fijosCiclo = prorratear(fijosMes, 1, ciclosPorMes);
   const variableCiclo = prorratear(topesDelMes.total, 1, ciclosPorMes);
   const monto = ingreso - fijosCiclo - variableCiclo;

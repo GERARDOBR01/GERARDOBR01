@@ -30,6 +30,7 @@ const MODULOS = [
   "motor/ahorro.js",
   "motor/metas.js",
   "motor/fijos.js",
+  "motor/deudas.js",
   "almacen/archivo.js",
   "almacen/local.js",
   "almacen/almacen.js",

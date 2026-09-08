@@ -150,14 +150,28 @@ export function normalizarMovimiento(m) {
   };
 }
 
+/** Cada cuántos meses se paga un fijo. La tenencia no es un gasto mensual. */
+export const FRECUENCIAS = [
+  { meses: 1, etiqueta: "Cada mes" },
+  { meses: 2, etiqueta: "Cada 2 meses" },
+  { meses: 3, etiqueta: "Cada 3 meses" },
+  { meses: 6, etiqueta: "Cada 6 meses" },
+  { meses: 12, etiqueta: "Cada año" },
+];
+
 export function normalizarFijo(f) {
   if (!f || !f.nombre) return null;
   const monto = entero(f.monto, null);
+  const frecuencia = FRECUENCIAS.some((x) => x.meses === f.frecuencia) ? f.frecuencia : 1;
   return {
     id: f.id || idNuevo("fijo"),
     nombre: String(f.nombre).slice(0, 80),
     monto, // null = lo tiene registrado pero no sabe cuánto. Se declara, no se asume.
     diaCorte: Number.isInteger(f.diaCorte) ? Math.min(Math.max(f.diaCorte, 1), 31) : 1,
+    frecuencia,
+    // En qué mes toca cuando no es mensual. Sin ancla, un fijo anual no sabría cuándo cae.
+    mesAncla: /^\d{4}-\d{2}$/.test(f.mesAncla || "") ? f.mesAncla : null,
+    deudaId: f.deudaId || null, // si este pago abona a una deuda, la abona de verdad
     categoria: f.categoria ? String(f.categoria) : "servicios",
     activo: f.activo !== false,
   };

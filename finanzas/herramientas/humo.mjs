@@ -156,9 +156,32 @@ revisar(
   (await pagina.locator('[data-accion="editar-movimiento"]').count()) === antesDeCorregir,
 );
 
-// 10. Historial
+// 10. Historial, con su buscador
 await pagina.click('[data-accion="ver-historial"]');
 revisar("el historial agrupa por mes", (await pagina.textContent("main")).includes("septiembre 2026"));
+await pagina.fill("#buscador", "renta");
+await pagina.waitForTimeout(150);
+revisar("el buscador filtra sin perder el foco", await pagina.evaluate(() => document.activeElement.id === "buscador"));
+await pagina.fill("#buscador", "");
+await pagina.click('[data-vista="hoy"]');
+
+// 11. Un pago anual no es un gasto mensual
+await pagina.click('[data-vista="fijos"]');
+await pagina.click('[data-accion="nuevo-fijo"]');
+await pagina.fill('[data-clave="nombre"]', "Seguro anual");
+await pagina.fill('[data-clave="monto"]', "12000");
+await pagina.click('[data-clave="frecuencia"] [data-valor="12"]');
+await pagina.waitForTimeout(150);
+revisar("un fijo no mensual pregunta en qué mes toca", (await pagina.locator('[data-clave="mesAncla"]').count()) === 1);
+await pagina.fill('[data-clave="mesAncla"]', "2026-03");
+await pagina.fill('[data-clave="diaCorte"]', "10");
+await pagina.click('button[type="submit"]');
+await pagina.waitForSelector(".velo", { state: "detached" });
+const textoFijos = await pagina.textContent("main");
+revisar(
+  "el seguro anual entra al promedio dividido entre 12, no completo",
+  textoFijos.includes("Este mes en concreto se pagan") && textoFijos.includes("cada año · toca en marzo"),
+);
 await pagina.click('[data-vista="hoy"]');
 
 

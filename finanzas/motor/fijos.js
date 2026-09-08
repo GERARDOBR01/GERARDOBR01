@@ -5,9 +5,29 @@
 // sin intereses. Inventar una tasa "típica" daría un número creíble y falso, que es
 // exactamente el peor tipo de número en una app de finanzas.
 
-import { mesDe, vencimientoEnMes, diasEntre, sumarMeses } from "./ciclo.js";
+import { prorratear } from "./dinero.js";
+import { mesDe, vencimientoEnMes, diasEntre, sumarMeses, mesesEntre } from "./ciclo.js";
 import { TIPOS, movimientosEntre } from "./modelo.js";
 import { ESTADOS, SEVERIDADES, veredicto, sinDatos } from "./veredicto.js";
+
+/**
+ * ¿A este fijo le toca en este mes?
+ * Un seguro anual no se paga doce veces al año, y contarlo como mensual descuadraba la
+ * capacidad de ahorro de todas las quincenas. Sin mes ancla, un fijo no mensual se toma
+ * como que le toca en el mes en que se capturó.
+ */
+export function venceEnMes(fijo, mes) {
+  const frecuencia = fijo.frecuencia || 1;
+  if (frecuencia === 1) return true;
+  const ancla = fijo.mesAncla || mes;
+  return Math.abs(mesesEntre(ancla, mes)) % frecuencia === 0;
+}
+
+/** Lo que cuesta al mes en promedio: el monto repartido entre los meses de su frecuencia. */
+export function montoMensualizado(fijo) {
+  if (fijo.monto === null) return null;
+  return prorratear(fijo.monto, 1, fijo.frecuencia || 1);
+}
 
 /** ¿Ya se pagó este fijo en este mes? Devuelve el movimiento que lo comprueba. */
 export function pagoDeFijo(datos, fijoId, mes) {
@@ -26,6 +46,7 @@ export function proximosVencimientos(datos, iso, dias = 15) {
   for (const fijo of datos.fijos) {
     if (!fijo.activo) continue;
     for (const mes of [mesDe(iso), mesDe(sumarMeses(iso, 1))]) {
+      if (!venceEnMes(fijo, mes)) continue;
       const fecha = vencimientoEnMes(mes, fijo.diaCorte);
       if (fecha > hasta) continue;
       const pago = pagoDeFijo(datos, fijo.id, mes);
@@ -45,24 +66,40 @@ export function proximosVencimientos(datos, iso, dias = 15) {
   return salida.sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
 }
 
-/** Lo que suman los fijos al mes, diciendo cuáles no se pudieron sumar. */
-export function totalFijosMensual(datos) {
-  let total = 0;
+/**
+ * Lo que suman los fijos, en DOS números que no son el mismo:
+ *   · `mensualizado` — el promedio por mes (un seguro anual entra dividido entre 12). Es el
+ *     que debe entrar en la capacidad de ahorro: es lo que hay que ir apartando.
+ *   · `esteMes` — lo que de verdad se paga en el mes de `iso`. Es lo que sale de la cuenta.
+ * Antes había uno solo, y para cualquier fijo no mensual mentía.
+ */
+export function totalFijosMensual(datos, iso = null) {
+  const mes = iso ? mesDe(iso) : null;
+  let mensualizado = 0;
+  let esteMes = 0;
   const desconocidos = [];
+
   for (const fijo of datos.fijos) {
     if (!fijo.activo) continue;
-    if (fijo.monto === null) desconocidos.push(fijo.nombre);
-    else total += fijo.monto;
+    if (fijo.monto === null) {
+      desconocidos.push(fijo.nombre);
+      continue;
+    }
+    mensualizado += montoMensualizado(fijo);
+    if (mes && venceEnMes(fijo, mes)) esteMes += fijo.monto;
   }
+
   return {
-    total,
+    mensualizado,
+    esteMes,
+    total: mensualizado, // el nombre viejo sigue apuntando al promedio mensual
     desconocidos,
     veredicto: desconocidos.length
       ? sinDatos(
           `${desconocidos.length} fijo(s) sin monto no entran en el total`,
           `captura el monto de: ${desconocidos.join(", ")}`,
         )
-      : veredicto(ESTADOS.VA_BIEN, SEVERIDADES.OK, "todos tus fijos tienen monto", { total }),
+      : veredicto(ESTADOS.VA_BIEN, SEVERIDADES.OK, "todos tus fijos tienen monto", { mensualizado }),
   };
 }
 
@@ -128,7 +165,10 @@ export function totalDeudas(datos) {
   return { total, sinMonto, conIntereses: false };
 }
 
-/** Movimiento listo para guardar cuando marcas un fijo como pagado. */
+/**
+ * Movimiento listo para guardar cuando marcas un fijo como pagado.
+ * Si el fijo es el pago de una deuda, el movimiento la abona: un solo registro, no dos.
+ */
 export function movimientoDeFijo(fijo, fecha) {
   return {
     fecha,
@@ -137,5 +177,6 @@ export function movimientoDeFijo(fijo, fecha) {
     categoria: fijo.categoria,
     nota: fijo.nombre,
     fijoId: fijo.id,
+    deudaId: fijo.deudaId || null,
   };
 }

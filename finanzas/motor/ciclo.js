@@ -60,6 +60,13 @@ export function sumarMeses(iso, n) {
   return armarISO(nuevoAnio, nuevoMes, Math.min(dia, diasEnMes(nuevoAnio, nuevoMes)));
 }
 
+/** Meses de diferencia entre dos "AAAA-MM" (b − a). */
+export function mesesEntre(a, b) {
+  const [anioA, mesA] = a.split("-").map(Number);
+  const [anioB, mesB] = b.split("-").map(Number);
+  return (anioB - anioA) * 12 + (mesB - mesA);
+}
+
 /** Días de diferencia entre dos fechas (b − a). */
 export function diasEntre(a, b) {
   const pa = partes(a);

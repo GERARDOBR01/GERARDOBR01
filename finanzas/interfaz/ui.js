@@ -8,14 +8,15 @@
 // un cero disfrazado de dato.
 
 import { formatear, aCentavos } from "../motor/dinero.js";
-import { hoyISO, mesDe, cicloDe } from "../motor/ciclo.js";
+import { hoyISO, mesDe, cicloDe, vencimientoEnMes } from "../motor/ciclo.js";
 import {
-  TIPOS, agregarMovimiento, eliminarMovimiento, movimientosEntre, categoriaPorId, idNuevo, datosVacios,
+  TIPOS, FRECUENCIAS, agregarMovimiento, eliminarMovimiento, movimientosEntre, categoriaPorId, idNuevo, datosVacios,
 } from "../motor/modelo.js";
 import { resumenPresupuesto, topesVariables, topeVigente } from "../motor/presupuesto.js";
 import { panelHoy, capacidadPorCiclo, estadoColchon, ahorroLibre } from "../motor/ahorro.js";
 import { resumenMetas, exigenciaTotal } from "../motor/metas.js";
-import { proximosVencimientos, saldoDeuda, totalFijosMensual, movimientoDeFijo } from "../motor/fijos.js";
+import { proximosVencimientos, totalFijosMensual, movimientoDeFijo, venceEnMes, montoMensualizado } from "../motor/fijos.js";
+import { planDeDeuda } from "../motor/deudas.js";
 import { abrirAlmacen, MODOS } from "../almacen/almacen.js";
 import { exportar, importar, nombreDeRespaldo } from "../almacen/archivo.js";
 
@@ -26,6 +27,7 @@ const app = {
   hoy: hoyISO(),
   aviso: null,
   bloqueado: false,
+  filtro: { texto: "", tipo: "" },
 };
 
 const VISTAS = [
@@ -167,7 +169,10 @@ function vistaHoy() {
           clase: panel.disponible < 0 ? "mal" : "",
           extra: `<div class="rotulo">quedan ${panel.ciclo.diasRestantes} de ${panel.ciclo.dias} días · ya gastaste ${monto(panel.gasto.total)}${
             panel.fijos.pendiente > 0 ? ` · fijos por pagar ${monto(panel.fijos.pendiente)}` : ""
-          }</div>`,
+          }</div>
+          ${panel.ingresos.origen === "perfil"
+            ? `<div class="rotulo">Cuenta con ${monto(panel.ingresos.monto)} de ingreso <b>estimado de tu perfil</b> — todavía no capturas el depósito de este ciclo.</div>`
+            : ""}`,
           veredicto: panel.veredicto,
         });
 
@@ -195,7 +200,7 @@ function vistaHoy() {
               <div class="sub">${v.vencido ? `venció hace ${Math.abs(v.dias)} día(s)` : v.dias === 0 ? "vence hoy" : `en ${v.dias} día(s)`} · ${fechaCorta(v.fecha)}</div>
             </div>
             <div class="monto">${monto(v.monto)}</div>
-            <button class="boton chico tenue" data-accion="pagar-fijo" data-id="${esc(v.fijo.id)}">Pagué</button>
+            <button class="boton chico tenue" data-accion="pagar-fijo" data-id="${esc(v.fijo.id)}" data-fecha="${esc(v.fecha)}">Pagué</button>
           </div>`,
         )
         .join("")}</div>`
@@ -257,15 +262,31 @@ function filaMovimiento(m) {
 // y sus movimientos, que es lo que se necesita para revisar y corregir.
 
 function vistaHistorial() {
+  const filtro = app.filtro || { texto: "", tipo: "" };
   const meses = Object.keys(app.datos.movimientos).sort().reverse();
   if (!meses.length) {
     return `<div class="tarjeta">${vacio("Todavía no hay nada capturado.")}
       <button class="boton tenue" data-accion="ir" data-vista="hoy">Volver</button></div>`;
   }
 
+  // Filtrado en memoria: el texto busca en la nota y en el nombre de la categoría.
+  const pasa = (m) => {
+    if (filtro.tipo && m.tipo !== filtro.tipo) return false;
+    if (!filtro.texto) return true;
+    const categoria = categoriaPorId(app.datos, m.categoria);
+    const donde = `${m.nota || ""} ${categoria ? categoria.nombre : ""}`.toLowerCase();
+    return donde.includes(filtro.texto.toLowerCase());
+  };
+
+  let encontrados = 0;
+  let sumaFiltrada = 0;
+
   const bloques = meses
     .map((mes) => {
-      const lista = app.datos.movimientos[mes];
+      const lista = app.datos.movimientos[mes].filter(pasa);
+      if (!lista.length) return "";
+      encontrados += lista.length;
+      sumaFiltrada += lista.reduce((t, m) => t + (m.tipo === TIPOS.GASTO ? m.monto : 0), 0);
       const suman = (filtro) => lista.reduce((t, m) => (filtro(m) ? t + m.monto : t), 0);
       const gastos = suman((m) => m.tipo === TIPOS.GASTO);
       const ingresos = suman((m) => m.tipo === TIPOS.INGRESO);
@@ -285,7 +306,35 @@ function vistaHistorial() {
     })
     .join("");
 
-  return `<div class="acciones" style="margin:0 0 4px"><button class="boton tenue" data-accion="ir" data-vista="hoy">← Volver a Hoy</button></div>${bloques}`;
+  const chipsTipo = [
+    { valor: "", etiqueta: "Todo" },
+    { valor: TIPOS.GASTO, etiqueta: "Gastos" },
+    { valor: TIPOS.INGRESO, etiqueta: "Ingresos" },
+    { valor: TIPOS.AHORRO, etiqueta: "Apartados" },
+    { valor: TIPOS.RETIRO, etiqueta: "Retiros" },
+  ];
+
+  const buscador = `<div class="tarjeta plana">
+      <input id="buscador" type="search" placeholder="Buscar por nota o categoría"
+             value="${esc(filtro.texto)}" data-accion-input="filtrar-texto">
+      <div class="chips" style="margin-top:10px">
+        ${chipsTipo
+          .map(
+            (c) => `<button class="chip" data-accion="filtrar-tipo" data-tipo="${esc(c.valor)}"
+              aria-pressed="${filtro.tipo === c.valor}">${esc(c.etiqueta)}</button>`,
+          )
+          .join("")}
+      </div>
+      ${filtro.texto || filtro.tipo
+        ? `<div class="rotulo" style="margin-top:10px">${encontrados} movimiento(s)${
+            sumaFiltrada ? ` · ${monto(sumaFiltrada)} en gastos` : ""
+          }</div>`
+        : ""}
+    </div>`;
+
+  return `<div class="acciones" style="margin:0 0 10px"><button class="boton tenue" data-accion="ir" data-vista="hoy">← Volver a Hoy</button></div>
+    ${buscador}
+    ${bloques || `<div class="tarjeta">${vacio("Nada coincide con esa búsqueda.")}</div>`}`;
 }
 
 // --- Vista: Presupuesto ---
@@ -392,18 +441,35 @@ function vistaMetas() {
 
 // --- Vista: Fijos y deudas ---
 
+/** "cada mes" · "cada año · toca en marzo" */
+function comoFrecuencia(fijo) {
+  const frecuencia = fijo.frecuencia || 1;
+  if (frecuencia === 1) return "cada mes";
+  const etiqueta = (FRECUENCIAS.find((f) => f.meses === frecuencia) || {}).etiqueta || `cada ${frecuencia} meses`;
+  const ancla = fijo.mesAncla ? ` · toca en ${MESES[Number(fijo.mesAncla.slice(5, 7)) - 1]}` : "";
+  return `${etiqueta.toLowerCase()}${ancla}`;
+}
+
 function vistaFijos() {
   const { datos, hoy } = app;
-  const total = totalFijosMensual(datos);
+  const total = totalFijosMensual(datos, hoy);
 
   const fijos = datos.fijos.length
     ? datos.fijos
         .map((f) => {
           const pagado = (datos.movimientos[mesDe(hoy)] || []).some((m) => m.fijoId === f.id);
+          const deuda = f.deudaId ? datos.deudas.find((d) => d.id === f.deudaId) : null;
+          const mensual = montoMensualizado(f);
           return `<div class="fila">
             <div class="crece"><div class="nombre">${esc(f.nombre)}</div>
-              <div class="sub">día ${f.diaCorte} de cada mes${pagado ? " · pagado este mes" : ""}</div></div>
+              <div class="sub">día ${f.diaCorte} · ${esc(comoFrecuencia(f))}${pagado ? " · pagado este mes" : ""}${
+                deuda ? ` · abona a ${esc(deuda.nombre)}` : ""
+              }${(f.frecuencia || 1) > 1 && mensual !== null ? ` · ${monto(mensual)} al mes` : ""}</div></div>
             <div class="monto">${monto(f.monto)}</div>
+            ${!pagado && f.monto !== null && venceEnMes(f, mesDe(hoy))
+              ? `<button class="boton chico tenue" data-accion="pagar-fijo" data-id="${esc(f.id)}"
+                   data-fecha="${esc(vencimientoEnMes(mesDe(hoy), f.diaCorte))}">Pagué</button>`
+              : ""}
             <button class="boton chico tenue" data-accion="editar-fijo" data-id="${esc(f.id)}">Editar</button>
           </div>`;
         })
@@ -413,14 +479,16 @@ function vistaFijos() {
   const deudas = datos.deudas.length
     ? datos.deudas
         .map((d) => {
-          const s = saldoDeuda(datos, d);
+          const plan = planDeDeuda(datos, d);
           return `<div class="tarjeta">
             <div class="fila" style="border-bottom:0;padding:0">
               <div class="crece"><div class="nombre">${esc(d.nombre)}</div>
-                <div class="sub">${s.pagos} pago(s) · abonado ${monto(s.pagado)}</div></div>
-              <div class="monto">${monto(s.saldo)}</div>
+                <div class="sub">${plan.pagos} pago(s) · abonado ${monto(plan.pagado)}${
+                  plan.pago.origen === "fijo" ? ` · ${monto(plan.pago.monto)} al mes` : ""
+                }</div></div>
+              <div class="monto">${monto(plan.saldo)}</div>
             </div>
-            ${veredictoHTML(s.veredicto)}
+            ${veredictoHTML(plan.veredicto)}
             <div class="acciones">
               <button class="boton chico" data-accion="pagar-deuda" data-id="${esc(d.id)}">Registrar pago</button>
               <button class="boton chico tenue" data-accion="editar-deuda" data-id="${esc(d.id)}">Editar</button>
@@ -432,7 +500,11 @@ function vistaFijos() {
 
   return `${tarjetaCifra({
     rotulo: "Comprometido cada mes",
-    valor: monto(total.total),
+    valor: monto(total.mensualizado),
+    extra:
+      total.esteMes !== total.mensualizado
+        ? `<div class="rotulo">Este mes en concreto se pagan ${monto(total.esteMes)}: el promedio reparte los pagos que no son mensuales.</div>`
+        : "",
     veredicto: total.veredicto,
   })}
     <div class="titulo-seccion">Pagos fijos</div><div class="tarjeta">${fijos}</div>
@@ -602,7 +674,7 @@ function campoHTML(campo) {
       </select></div>`;
   }
 
-  const tipos = { monto: "text", texto: "text", fecha: "date", numero: "number" };
+  const tipos = { monto: "text", texto: "text", fecha: "date", numero: "number", mes: "month" };
   const extras =
     campo.tipo === "monto"
       ? 'inputmode="decimal" class="monto" placeholder="0.00"'
@@ -676,7 +748,15 @@ const acciones = {
 
   "ver-historial"() {
     app.vista = "historial";
+    app.filtro = { texto: "", tipo: "" };
     render();
+  },
+
+  "filtrar-tipo"(el) {
+    app.filtro = { ...(app.filtro || { texto: "" }), tipo: el.dataset.tipo };
+    render();
+    const caja = document.getElementById("buscador");
+    if (caja) caja.focus();
   },
 
   "editar-ingreso"() {
@@ -696,8 +776,8 @@ const acciones = {
   },
 
   "editar-colchon"() {
-    const fijos = totalFijosMensual(app.datos);
-    const referencia = fijos.total > 0 ? `Tres meses de tus fijos actuales son ${formatear(fijos.total * 3)}.` : "";
+    const fijos = totalFijosMensual(app.datos, app.hoy);
+    const referencia = fijos.mensualizado > 0 ? `Tres meses de tus fijos actuales son ${formatear(fijos.mensualizado * 3)}.` : "";
     abrirHoja({
       titulo: "Fondo de emergencia",
       campos: [
@@ -858,7 +938,11 @@ const acciones = {
   async "pagar-fijo"(el) {
     const fijo = app.datos.fijos.find((f) => f.id === el.dataset.id);
     if (fijo.monto === null) return acciones["editar-fijo"](el);
-    const { datos, error } = agregarMovimiento(app.datos, movimientoDeFijo(fijo, app.hoy));
+
+    // La fecha del pago es la del vencimiento, no la de hoy: registrarlo tarde no debe
+    // moverlo de ciclo ni descuadrar la quincena en la que de verdad salió el dinero.
+    const vencimiento = el.dataset.fecha || app.hoy;
+    const { datos, error } = agregarMovimiento(app.datos, movimientoDeFijo(fijo, vencimiento));
     if (error) return;
     await guardar(datos);
   },
@@ -1103,26 +1187,58 @@ function hojaMeta(meta) {
   });
 }
 
-function hojaFijo(fijo) {
+function hojaFijo(fijo, valores = {}) {
+  const frecuencia = Number(valores.frecuencia !== undefined ? valores.frecuencia : fijo ? fijo.frecuencia : 1) || 1;
+  const campos = [
+    { clave: "nombre", etiqueta: "Qué es", tipo: "texto", valor: valores.nombre !== undefined ? valores.nombre : fijo ? fijo.nombre : "", requerido: true },
+    {
+      clave: "monto", etiqueta: "Cuánto", tipo: "monto",
+      valor: valores.monto !== undefined ? valores.monto : fijo ? comoCampo(fijo.monto) : "",
+      ayuda: "Si todavía no lo sabes, déjalo vacío: la app lo contará como pendiente por capturar.",
+    },
+    {
+      clave: "frecuencia", etiqueta: "Cada cuánto se paga", tipo: "chips", valor: String(frecuencia),
+      opciones: FRECUENCIAS.map((f) => ({ valor: String(f.meses), etiqueta: f.etiqueta })),
+      // Si deja de ser mensual, la hoja pide en qué mes toca: sin eso no se sabe cuándo cae.
+      alCambiar: (nuevo, actuales) => hojaFijo(fijo, { ...actuales, frecuencia: nuevo }),
+    },
+  ];
+
+  if (frecuencia > 1) {
+    campos.push({
+      clave: "mesAncla", etiqueta: "¿En qué mes toca?", tipo: "mes",
+      valor: valores.mesAncla !== undefined ? valores.mesAncla : fijo && fijo.mesAncla ? fijo.mesAncla : mesDe(app.hoy),
+      ayuda: "A partir de ese mes se repite con la frecuencia que elegiste.",
+    });
+  }
+
+  campos.push(
+    { clave: "diaCorte", etiqueta: "Qué día se paga", tipo: "numero", valor: valores.diaCorte !== undefined ? valores.diaCorte : fijo ? fijo.diaCorte : 1, requerido: true },
+    { clave: "categoria", etiqueta: "Categoría", tipo: "chips", valor: valores.categoria !== undefined ? valores.categoria : fijo ? fijo.categoria : "servicios", opciones: opcionesCategorias() },
+  );
+
+  if (app.datos.deudas.length) {
+    campos.push({
+      clave: "deudaId", etiqueta: "¿Este pago abona a una deuda?", tipo: "chips",
+      valor: valores.deudaId !== undefined ? valores.deudaId : fijo && fijo.deudaId ? fijo.deudaId : "",
+      opciones: [{ valor: "", etiqueta: "No" }, ...app.datos.deudas.map((d) => ({ valor: d.id, etiqueta: d.nombre }))],
+    });
+  }
+
   abrirHoja({
     titulo: fijo ? `Editar ${fijo.nombre}` : "Nuevo pago fijo",
-    campos: [
-      { clave: "nombre", etiqueta: "Qué es", tipo: "texto", valor: fijo ? fijo.nombre : "", requerido: true },
-      {
-        clave: "monto", etiqueta: "Cuánto", tipo: "monto",
-        valor: fijo && fijo.monto !== null ? (fijo.monto / 100).toFixed(2) : "",
-        ayuda: "Si todavía no lo sabes, déjalo vacío: la app lo contará como pendiente por capturar.",
-      },
-      { clave: "diaCorte", etiqueta: "Qué día del mes se paga", tipo: "numero", valor: fijo ? fijo.diaCorte : 1, requerido: true },
-      { clave: "categoria", etiqueta: "Categoría", tipo: "chips", valor: fijo ? fijo.categoria : "servicios", opciones: opcionesCategorias() },
-    ],
+    campos,
     extra: fijo
       ? `<button type="button" class="boton chico peligro" data-accion="borrar-fijo" data-id="${esc(fijo.id)}">Borrar este fijo</button>`
       : "",
     async alGuardar(v) {
+      const cada = Number(v.frecuencia) || 1;
       const nuevo = {
         id: fijo ? fijo.id : idNuevo("fijo"),
         nombre: v.nombre, monto: v.monto, diaCorte: Math.min(Math.max(Number(v.diaCorte) || 1, 1), 31),
+        frecuencia: cada,
+        mesAncla: cada > 1 ? v.mesAncla || mesDe(app.hoy) : null,
+        deudaId: v.deudaId || null,
         categoria: v.categoria || "servicios", activo: true,
       };
       const fijos = fijo ? app.datos.fijos.map((f) => (f.id === fijo.id ? nuevo : f)) : [...app.datos.fijos, nuevo];
@@ -1166,6 +1282,20 @@ export async function arrancar() {
     const tema = localStorage.getItem("finanzas:tema");
     if (tema && tema !== "sistema") document.documentElement.dataset.tema = tema;
   } catch (e) {}
+
+  document.addEventListener("input", (e) => {
+    if (e.target.dataset.accionInput !== "filtrar-texto") return;
+    // Se guarda el texto y se re-dibuja solo la lista: volver a pintar todo en cada tecla
+    // le quitaría el foco al buscador.
+    app.filtro = { ...(app.filtro || { tipo: "" }), texto: e.target.value };
+    const posicion = e.target.selectionStart;
+    render();
+    const caja = document.getElementById("buscador");
+    if (caja) {
+      caja.focus();
+      caja.setSelectionRange(posicion, posicion);
+    }
+  });
 
   document.addEventListener("click", (e) => {
     const boton = e.target.closest("[data-accion]");
