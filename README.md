@@ -89,11 +89,6 @@ cuando se puede, cero datos reales en el repo, y una respuesta honesta cuando fa
   <img src="https://img.shields.io/badge/LLMs_con_verificaci%C3%B3n-0B0B0D?style=flat-square&logoColor=E8C872" alt="LLMs con verificación">
 </p>
 
-<p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=GERARDOBR01&show_icons=true&hide_border=true&bg_color=0B0B0D&title_color=E8C872&icon_color=E8C872&text_color=F5F1E8&locale=es&hide_title=false&rank_icon=github" alt="Estadísticas de GitHub" height="165">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=GERARDOBR01&layout=compact&hide_border=true&bg_color=0B0B0D&title_color=E8C872&text_color=F5F1E8&locale=es" alt="Lenguajes más usados" height="165">
-</p>
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/GERARDOBR01/GERARDOBR01/output/snake.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/GERARDOBR01/GERARDOBR01/output/snake-light.svg">
