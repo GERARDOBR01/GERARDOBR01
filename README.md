@@ -49,6 +49,34 @@ Estudio Ingeniería en Software y Redes. Escribo mis commits en español.
 <table>
 <tr>
 <td width="52%">
+  <a href="https://gerardobr01.github.io/Asistente-de-piso/"><img src="assets/card-asistente.png" alt="El asistente de piso citando el manual en modo manual, sin modelo conectado" width="100%"></a>
+</td>
+<td valign="top">
+
+### 💬 [Asistente de piso](https://github.com/GERARDOBR01/Asistente-de-piso) · [demo en vivo](https://gerardobr01.github.io/Asistente-de-piso/)
+
+**Retail · el estándar operativo, consultable**
+
+La otra mitad de Veristack: uno **verifica** el montaje con una foto, este ayuda a montarlo
+bien desde el principio.
+
+Sin API key no se calla ni finge: corre el retrieval en el propio teléfono y entrega la
+sección del manual **declarando que nadie la interpretó**. Si nada coincide, lo dice.
+
+```
+⚪ Sin modelo conectado.
+Coincidieron 3 secciones.
+```
+
+`HTML` · `JavaScript` · `BM25` · `Gemini` · `OpenAI`
+
+**[▶ Verlo en 37 segundos](https://github.com/GERARDOBR01/Asistente-de-piso/blob/main/docs/video-linkedin.mp4)** · 11 manuales reales · 706 láminas · 33/33 pruebas
+
+</td>
+</tr>
+
+<tr>
+<td width="52%">
   <a href="https://github.com/GERARDOBR01/veristack"><img src="assets/card-veristack.png" alt="Veristack mostrando un veredicto con su fuente" width="100%"></a>
 </td>
 <td valign="top">
@@ -114,32 +142,6 @@ que corre en vivo. Un solo archivo HTML: sin build, sin backend, sin red. Abre e
 celular en la banqueta, antes de que arranque el camión.
 
 `HTML` · `CSS` · `JavaScript`
-
-</td>
-</tr>
-
-<tr>
-<td width="52%">
-  <a href="https://gerardobr01.github.io/Visual_Lv-/"><img src="assets/card-asistente.png" alt="El asistente de piso citando el manual en modo manual, sin modelo conectado" width="100%"></a>
-</td>
-<td valign="top">
-
-### 💬 [Asistente de piso](https://github.com/GERARDOBR01/Visual_Lv-) · [demo en vivo](https://gerardobr01.github.io/Visual_Lv-/)
-
-**Retail · el estándar operativo, consultable**
-
-La otra mitad de Veristack: uno **verifica** el montaje con una foto, este ayuda a montarlo
-bien desde el principio.
-
-Sin API key no se calla ni finge: corre el retrieval en el propio teléfono y entrega la
-sección del manual **declarando que nadie la interpretó**. Si nada coincide, lo dice.
-
-```
-⚪ Sin modelo conectado.
-Coincidieron 3 secciones.
-```
-
-`HTML` · `JavaScript` · `Gemini` · `OpenAI`
 
 </td>
 </tr>
