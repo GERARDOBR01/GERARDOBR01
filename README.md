@@ -33,7 +33,7 @@ piso valga tanto como lo que sé de código.
 <tr>
 <td width="50%" valign="top">
   <a href="https://github.com/GERARDOBR01/Asistente-de-piso"><img src="assets/v2/gh-card-asistente.png" alt="Asistente de Piso — IA que cita el manual. 706 láminas indexadas." width="100%"></a>
-  <p align="center"><sub><a href="https://github.com/GERARDOBR01/Asistente-de-piso"><b>Repo</b></a> · <a href="https://gerardobr01.github.io/Asistente-de-piso/">Demo en vivo</a> · MIT · 11 manuales · 33/33 pruebas · 1 archivo HTML</sub></p>
+  <p align="center"><sub><a href="https://github.com/GERARDOBR01/Asistente-de-piso"><b>Repo</b></a> · <a href="https://gerardobr01.github.io/Asistente-de-piso/">Demo en vivo</a> · Código visible (uso comercial con licencia) · 11 manuales · 33/33 pruebas · 1 archivo HTML</sub></p>
 </td>
 <td width="50%" valign="top">
   <a href="https://github.com/GERARDOBR01/veristack"><img src="assets/v2/gh-card-veristack.png" alt="Veristack — verificación visual de exhibiciones con criterio trazable. 11/11 bloques de suite, 0 llamadas de API." width="100%"></a>
