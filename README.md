@@ -1,126 +1,64 @@
-<a href="https://gerardobr01.github.io/Asistente-de-piso/"><img src="assets/v2/gh-hero.png" alt="Gerardo Barrera — Construyo herramientas de IA desde adentro del piso de venta. Promotor visual en Liverpool de día, estudiante de Ingeniería en Software. 5 proyectos publicados, 3 demos que abren en el celular, 33/33 pruebas, 0 datos de cliente en repos públicos." width="100%"></a>
+<a href="https://gerardobr01.github.io/Asistente-de-piso/"><img src="assets/octubre-2026/hero.svg" alt="Gerardo Barrera: desarrollo junior y automatización con JavaScript y Python, Guadalajara" width="100%"></a>
 
-<p align="center">
-  <a href="https://www.linkedin.com/in/gerardo-barrera-dev/"><img src="https://img.shields.io/badge/LinkedIn-gerardo--barrera--dev-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
-  <a href="https://gerardobr01.github.io/Asistente-de-piso/"><img src="https://img.shields.io/badge/Demo-pru%C3%A9balo_desde_tu_celular-C8962B?style=for-the-badge&logoColor=white" alt="Demo pública"></a>
-  <a href="https://github.com/GERARDOBR01/Asistente-de-piso/blob/main/docs/video-linkedin.mp4"><img src="https://img.shields.io/badge/%E2%96%B6_Video-37_segundos-0F0C05?style=for-the-badge" alt="Video de 37 segundos"></a>
-</p>
+### Soy Gerardo Barrera
 
-### Hola, soy Gerardo 👋
+Trabajo como promotor visual en Liverpool y estudio **Ingeniería en Software y Redes en la UVM**.
+Construyo software en mi tiempo libre a partir de problemas que conozco desde el piso: consultar
+manuales frente a una exhibición y revisar su montaje con evidencia.
 
-Trabajo en el piso de venta de **Liverpool** en Guadalajara: promotor visual, responsable de que las exhibiciones
-cumplan el manual de campaña (llegué a tener seis secciones a mi cargo, cada una con su propio manual).
-Ahí vi dos problemas todos los días — **nadie abre un manual de 40 páginas frente al mueble**, y la
-validación de cumplimiento se hace a puro criterio y no queda registrada — y en vez de quejarme los convertí
-en software.
+Busco mi **primer puesto de tiempo completo en desarrollo junior o automatización**, especialmente
+en retail tech, software para operaciones o e-commerce. Guadalajara, presencial, híbrido o remoto.
 
-Estudio Ingeniería en Software y Redes en la UVM. Antes de Liverpool ensamblé racks y servidores para un
-proyecto de Microsoft (vía Foxconn). Construyo en mi tiempo libre, escribo mis commits en español y busco mi
-**primer rol de tiempo completo en desarrollo** — retail tech, e-commerce u operaciones, donde lo que sé del
-piso valga tanto como lo que sé de código.
+**[Probar Asistente de Piso](https://gerardobr01.github.io/Asistente-de-piso/) · [Conversar en LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)**
 
-## En 37 segundos
+## Lo que estoy construyendo
 
-<p align="center">
-  <a href="https://github.com/GERARDOBR01/Asistente-de-piso/blob/main/docs/video-linkedin.mp4"><img src="https://raw.githubusercontent.com/GERARDOBR01/Asistente-de-piso/main/docs/preview.gif" alt="Vista previa del video: una IA que cita la página exacta del manual, declara su certeza y dice «no sé» cuando no hay evidencia" width="440"></a>
-  <br>
-  <sub>Motion graphics del proyecto · <a href="https://github.com/GERARDOBR01/Asistente-de-piso/blob/main/docs/video-linkedin.mp4">ver con sonido</a></sub>
-</p>
+<a href="https://github.com/GERARDOBR01/Asistente-de-piso"><img src="assets/octubre-2026/asistente.svg" alt="Asistente de Piso: consulta de manuales y revisión fotográfica" width="100%"></a>
 
-## Proyectos
+**[Asistente de Piso](https://github.com/GERARDOBR01/Asistente-de-piso)** responde consultas desde el celular
+con la página y la lámina del manual. Tiene búsqueda local, modo con API opcional y revisión de fotos
+en el dispositivo. El código está separado en módulos ES sin bundler; las pruebas y una evaluación con
+manuales ficticios corren en CI. El repo documenta los resultados y sus límites.
 
-<table>
-<tr>
-<td width="50%" valign="top">
-  <a href="https://github.com/GERARDOBR01/Asistente-de-piso"><img src="assets/v2/gh-card-asistente.png" alt="Asistente de Piso — IA que cita el manual. 706 láminas indexadas." width="100%"></a>
-  <p align="center"><sub><a href="https://github.com/GERARDOBR01/Asistente-de-piso"><b>Repo</b></a> · <a href="https://gerardobr01.github.io/Asistente-de-piso/">Demo en vivo</a> · Código visible (uso comercial con licencia) · 11 manuales · 33/33 pruebas · 1 archivo HTML</sub></p>
-</td>
-<td width="50%" valign="top">
-  <a href="https://github.com/GERARDOBR01/veristack"><img src="assets/v2/gh-card-veristack.png" alt="Veristack — verificación visual de exhibiciones con criterio trazable. 11/11 bloques de suite, 0 llamadas de API." width="100%"></a>
-  <p align="center"><sub><a href="https://github.com/GERARDOBR01/veristack"><b>Repo</b></a> · motor + suite + benchmark con matriz de confusión · conocimiento 100 % sintético</sub></p>
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-  <a href="https://github.com/GERARDOBR01/Grip"><img src="assets/v2/gh-card-grip.png" alt="Grip — finanzas personales que leen la captura del aviso de tu banco. PWA sin cuenta ni servidor." width="100%"></a>
-  <p align="center"><sub><a href="https://github.com/GERARDOBR01/Grip"><b>Repo</b></a> · <a href="https://gerardobr01.github.io/grip/">Abrir la app</a> · instalable · funciona sin conexión</sub></p>
-</td>
-<td width="50%" valign="top">
-  <a href="https://github.com/GERARDOBR01/CRM-CLIENTES-"><img src="assets/v2/gh-card-crm.png" alt="CRM Certeza — ¿a quién le escribo hoy, qué le digo y por qué? Python, Streamlit, SQLite." width="100%"></a>
-  <p align="center"><sub><a href="https://github.com/GERARDOBR01/CRM-CLIENTES-"><b>Repo</b></a> · local, sin nube · el envío siempre lo da una persona</sub></p>
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-  <a href="https://github.com/GERARDOBR01/MUDANZAS-FLASH-"><img src="assets/v2/gh-card-constancia.png" alt="Constancia — registro de carga con sello de hora en vivo. Un solo archivo HTML." width="100%"></a>
-  <p align="center"><sub><a href="https://github.com/GERARDOBR01/MUDANZAS-FLASH-"><b>Repo</b></a> · <a href="https://gerardobr01.github.io/MUDANZAS-FLASH-/">Demo en vivo</a> · 0 dependencias</sub></p>
-</td>
-<td width="50%" valign="top">
+**Trabajo activo, octubre de 2026:** mejorar la efectividad del modo API, el diseño y la revisión fotográfica.
+Las métricas del [README del proyecto](https://github.com/GERARDOBR01/Asistente-de-piso#readme) corresponden
+a corpus y modos concretos; no son una garantía para cualquier manual. Código visible bajo PolyForm
+Noncommercial; el uso empresarial requiere licencia comercial escrita.
 
-**Los dos de retail son una sola idea.**
-Asistente de Piso ayuda a **montar bien** (consulta el estándar antes); Veristack **verifica** el montaje
-después (foto → veredicto). Misma columna vertebral: *el código decide, el modelo interpreta*.
+<table><tr><td width="50%" valign="top">
+<a href="https://github.com/GERARDOBR01/veristack"><img src="assets/octubre-2026/veristack.svg" alt="Veristack: verificación visual con trazabilidad" width="100%"></a>
+<b><a href="https://github.com/GERARDOBR01/veristack">Veristack</a></b>: reglas duras por código, criterios delegados al modelo y NO_CALIFICA cuando falta evidencia. Suite offline y benchmark sintético con matriz de confusión; sus falsos positivos permanecen visibles.
+</td><td width="50%" valign="top">
+<a href="https://github.com/GERARDOBR01/Grip"><img src="assets/octubre-2026/grip.svg" alt="Grip: finanzas personales locales" width="100%"></a>
+<b><a href="https://github.com/GERARDOBR01/Grip">Grip</a></b>: PWA de finanzas personales, lectura de avisos con confirmación y cálculo determinista en centavos. <a href="https://gerardobr01.github.io/grip/">Abrir la app</a>.
+</td></tr></table>
 
-**Los otros tres** cruzan finanzas personales, ventas y logística con la misma manía: un solo archivo
-cuando se puede, cero datos reales en el repo, y una respuesta honesta cuando falta información.
+También construí **[CRM Certeza](https://github.com/GERARDOBR01/CRM-CLIENTES-)** (Python, Streamlit y SQLite:
+prioriza prospectos y prepara mensajes que una persona revisa) y **[Constancia](https://github.com/GERARDOBR01/MUDANZAS-FLASH-)**
+([demo](https://gerardobr01.github.io/MUDANZAS-FLASH-/): maqueta de registro de carga para mudanzas).
 
-</td>
-</tr>
-</table>
+## Cómo trabajo
 
-<img src="assets/v2/gh-principios.png" alt="Cómo pienso: el código decide, el modelo interpreta · decir «no sé» es una feature · los fallos son parte de la arquitectura · reloj suizo, no cohete espacial" width="100%">
+- El código decide lo verificable; el modelo interpreta solo lo que recibe.
+- Cada resultado debe mostrar su evidencia y declarar cuándo falta información.
+- Los cambios se contrastan con pruebas; los resultados se publican con sus límites.
+- Las demos públicas usan datos sintéticos. Son proyectos personales, sin implantación oficial atribuida a mi empleador.
 
-## Ahora mismo · septiembre 2026
+**Herramientas:** JavaScript · Python · HTML/CSS · BM25 · integración de APIs de IA · SQLite · Streamlit · Git · Playwright.
 
-- 📣 Publicando Asistente de Piso en LinkedIn: video, carrusel y la historia de Veristack ([sígueme](https://www.linkedin.com/in/gerardo-barrera-dev/) para verlo).
-- 🧪 Veristack ya se mide contra un ground truth sintético; el caso que todavía falla está documentado, no escondido.
-- 🤝 Abierto a prácticas o a un primer rol de desarrollo en Guadalajara (presencial, híbrido o remoto).
+## Hablemos
 
-## Stack
+Si tu equipo necesita un junior que conecte el problema operativo con una herramienta que se pueda probar,
+**[puedes encontrarme en LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)**.
 
-<p>
-  <img src="https://img.shields.io/badge/Python-0B0B0D?style=flat-square&logo=python&logoColor=E8C872" alt="Python">
-  <img src="https://img.shields.io/badge/JavaScript-0B0B0D?style=flat-square&logo=javascript&logoColor=E8C872" alt="JavaScript">
-  <img src="https://img.shields.io/badge/HTML%2FCSS-0B0B0D?style=flat-square&logo=html5&logoColor=E8C872" alt="HTML/CSS">
-  <img src="https://img.shields.io/badge/Streamlit-0B0B0D?style=flat-square&logo=streamlit&logoColor=E8C872" alt="Streamlit">
-  <img src="https://img.shields.io/badge/SQLite-0B0B0D?style=flat-square&logo=sqlite&logoColor=E8C872" alt="SQLite">
-  <img src="https://img.shields.io/badge/Playwright-0B0B0D?style=flat-square&logo=playwright&logoColor=E8C872" alt="Playwright">
-  <img src="https://img.shields.io/badge/Git-0B0B0D?style=flat-square&logo=git&logoColor=E8C872" alt="Git">
-  <img src="https://img.shields.io/badge/LLMs_con_verificaci%C3%B3n-0B0B0D?style=flat-square&logoColor=E8C872" alt="LLMs con verificación">
-</p>
+<details><summary><b>In English</b></summary>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/GERARDOBR01/GERARDOBR01/output/snake.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/GERARDOBR01/GERARDOBR01/output/snake-light.svg">
-  <img src="https://raw.githubusercontent.com/GERARDOBR01/GERARDOBR01/output/snake.svg" alt="Serpiente recorriendo el grafo de contribuciones" width="100%">
-</picture>
+I build software and AI tools from problems I encounter on the retail floor in Guadalajara, Mexico.
+I am a Software and Networks Engineering student seeking my first full-time junior development or
+automation role. My main project, Asistente de Piso, combines local manual search, optional API-based
+answers with source pages, and on-device photo review. Its public repository includes a synthetic
+evaluation corpus, automated checks and documented limitations. These are personal projects.
 
-<a href="https://www.linkedin.com/in/gerardo-barrera-dev/"><img src="assets/v2/gh-cta.png" alt="¿Tu equipo hace retail tech, e-commerce u operaciones? Hablemos. Busco mi primer rol de tiempo completo en desarrollo. Guadalajara · híbrido · remoto." width="100%"></a>
-
-<p align="center">
-  <a href="https://www.linkedin.com/in/gerardo-barrera-dev/"><img src="https://img.shields.io/badge/Conectemos_en_LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
-  <a href="mailto:elyisuswtfgg@gmail.com"><img src="https://img.shields.io/badge/elyisuswtfgg@gmail.com-C8962B?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"></a>
-</p>
-
-<details>
-<summary><b>In English</b></summary>
-
-<br>
-
-I build **AI tools from inside the sales floor**. By day I'm a visual merchandiser at Liverpool (Mexico's
-largest department store), in charge of making displays match the campaign manual. Two problems I saw every
-day became my projects: nobody opens a 40-page manual in front of the fixture, and compliance checks are
-done by eye and never recorded.
-
-**Asistente de Piso** answers floor questions from a phone, cites the exact page and slide of the manual,
-declares its confidence and says *"the manual doesn't specify"* when there's no evidence — one HTML file,
-100 % local retrieval, 11 manuals, 33/33 tests. **Veristack** is the other half: photo of the display →
-verdict with a traceable source, where deterministic code decides and the model only interprets what it was
-handed.
-
-Software & Networks Engineering student in Guadalajara, looking for a first full-time developer role
-(retail tech, e-commerce or operations; on-site, hybrid or remote). Commit messages in Spanish.
+[Try the demo](https://gerardobr01.github.io/Asistente-de-piso/) · [Contact me on LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)
 
 </details>
-
-<p align="center"><sub>Gerardo Barrera · Ingeniería en Software y Redes · retail execution → retail tech · Guadalajara, México</sub></p>
