@@ -11,6 +11,8 @@ en retail tech, software para operaciones o e-commerce. Guadalajara, presencial,
 
 **[Probar Asistente de Piso](https://gerardobr01.github.io/Asistente-de-piso/) · [Conversar en LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)**
 
+**[Ver la demo en video (39 s, subtítulos en español)](https://www.linkedin.com/feed/update/urn:li:activity:7515168811004715008/)** — manual ficticio, respuesta con página de origen y revisión de un focal sintético. Material de la versión ap-v1.21.0, commit `53d8f81`, comprobado el 11 de octubre de 2026. Las mejoras del modo API, diseño y revisión fotográfica siguen en desarrollo.
+
 ## Lo que estoy construyendo
 
 <a href="https://github.com/GERARDOBR01/Asistente-de-piso"><img src="assets/octubre-2026/asistente.svg" alt="Asistente de Piso: consulta de manuales y revisión fotográfica" width="100%"></a>
