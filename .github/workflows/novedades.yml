@@ -1,0 +1,30 @@
+name: Novedades del perfil
+
+# Pone en el README los últimos commits de mis repos públicos.
+# Corre cada día y también a mano desde la pestaña Actions; solo hace commit si algo cambió.
+
+on:
+  schedule:
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+jobs:
+  novedades:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Actualizar la sección
+        run: python .github/scripts/novedades.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Guardar si cambió
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "Novedades: actualización automática"
+            git push
+          fi
