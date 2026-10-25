@@ -1,4 +1,4 @@
-<a href="https://github.com/GERARDOBR01"><img src="assets/perfil-2026/hero.svg" alt="Gerardo Barrera: estudiante de Ingeniería en Software y Redes, Guadalajara" width="100%"></a>
+<a href="https://github.com/GERARDOBR01"><picture><source media="(prefers-color-scheme: light)" srcset="assets/perfil-2026/hero-light.svg"><img src="assets/perfil-2026/hero.svg" alt="Gerardo Barrera: estudiante de Ingeniería en Software y Redes, Guadalajara" width="100%"></picture></a>
 
 ### Hola, soy Gerardo 👋
 
@@ -13,7 +13,7 @@ Me gusta que lo que hago se pueda abrir, probar y entender, no solo que se vea b
 
 ## Lo que he armado
 
-<a href="https://github.com/GERARDOBR01/Asistente-de-piso"><img src="assets/perfil-2026/asistente.svg" alt="Asistente de Piso: consulta de manuales y análisis de fotos" width="100%"></a>
+<a href="https://github.com/GERARDOBR01/Asistente-de-piso"><picture><source media="(prefers-color-scheme: light)" srcset="assets/perfil-2026/asistente-light.svg"><img src="assets/perfil-2026/asistente.svg" alt="Asistente de Piso: consulta de manuales y análisis de fotos" width="100%"></picture></a>
 
 **[Asistente de Piso](https://github.com/GERARDOBR01/Asistente-de-piso)** es mi proyecto más grande: una app que
 responde dudas leyendo manuales y te dice de qué página sacó la respuesta. Si no encuentra nada, dice «no sé» en
@@ -21,10 +21,10 @@ lugar de inventar. Funciona desde el celular, con búsqueda local y un modo con 
 [Probarla aquí](https://gerardobr01.github.io/Asistente-de-piso/).
 
 <table><tr><td width="50%" valign="top">
-<a href="https://github.com/GERARDOBR01/veristack"><img src="assets/perfil-2026/veristack.svg" alt="Veristack: verificación visual con trazabilidad" width="100%"></a>
+<a href="https://github.com/GERARDOBR01/veristack"><picture><source media="(prefers-color-scheme: light)" srcset="assets/perfil-2026/veristack-light.svg"><img src="assets/perfil-2026/veristack.svg" alt="Veristack: verificación visual con trazabilidad" width="100%"></picture></a>
 <b><a href="https://github.com/GERARDOBR01/veristack">Veristack</a></b>: un motor que revisa fotos contra reglas y da un veredicto con su razón. Lo que se puede verificar lo decide el código; el modelo solo interpreta. Si falta evidencia, no califica.
 </td><td width="50%" valign="top">
-<a href="https://github.com/GERARDOBR01/Grip"><img src="assets/perfil-2026/grip.svg" alt="Grip: finanzas personales locales" width="100%"></a>
+<a href="https://github.com/GERARDOBR01/Grip"><picture><source media="(prefers-color-scheme: light)" srcset="assets/perfil-2026/grip-light.svg"><img src="assets/perfil-2026/grip.svg" alt="Grip: finanzas personales locales" width="100%"></picture></a>
 <b><a href="https://github.com/GERARDOBR01/Grip">Grip</a></b>: app de finanzas personales. Le pasas la captura del aviso de tu banco y lee monto, fecha y comercio. Sin cuenta ni servidor. <a href="https://gerardobr01.github.io/grip/">Abrirla</a>.
 </td></tr></table>
 
