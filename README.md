@@ -1,66 +1,57 @@
-<a href="https://gerardobr01.github.io/Asistente-de-piso/"><img src="assets/octubre-2026/hero.svg" alt="Gerardo Barrera: desarrollo junior y automatización con JavaScript y Python, Guadalajara" width="100%"></a>
+<a href="https://github.com/GERARDOBR01"><img src="assets/octubre-2026/hero.svg" alt="Gerardo Barrera: estudiante de Ingeniería en Software y Redes, Guadalajara" width="100%"></a>
 
-### Soy Gerardo Barrera
+### Hola, soy Gerardo 👋
 
-Trabajo como promotor visual en Liverpool y estudio **Ingeniería en Software y Redes en la UVM**.
-Construyo software en mi tiempo libre a partir de problemas que conozco desde el piso: consultar
-manuales frente a una exhibición y revisar su montaje con evidencia.
+Soy estudiante de **Ingeniería en Software y Redes** (UVM, Guadalajara). Estoy mejorando mis bases
+del software, y mientras tanto uso las herramientas de IA con muchas ganas para crear proyectos y
+herramientas técnicas: apps, utilidades, pruebas de ideas y todo lo que se me ocurra que valga la pena armar.
 
-Busco mi **primer puesto de tiempo completo en desarrollo junior o automatización**, especialmente
-en retail tech, software para operaciones o e-commerce. Guadalajara, presencial, híbrido o remoto.
+No soy de los que esperan a saberlo todo para empezar. Construyo, me equivoco, lo arreglo y de ahí aprendo.
+Me gusta que lo que hago se pueda abrir, probar y entender, no solo que se vea bien.
 
-**[Probar Asistente de Piso](https://gerardobr01.github.io/Asistente-de-piso/) · [Conversar en LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)**
+**[LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)** · estoy abierto a oportunidades junior en desarrollo, automatización o redes.
 
-**[Ver la demo en video (39 s, subtítulos en español)](https://www.linkedin.com/feed/update/urn:li:activity:7515168811004715008/)** — manual ficticio, respuesta con página de origen y revisión de un focal sintético. Material de la versión ap-v1.21.0, commit `53d8f81`, comprobado el 11 de octubre de 2026. Las mejoras del modo API, diseño y revisión fotográfica siguen en desarrollo.
-
-## Lo que estoy construyendo
+## Lo que he armado
 
 <a href="https://github.com/GERARDOBR01/Asistente-de-piso"><img src="assets/octubre-2026/asistente.svg" alt="Asistente de Piso: consulta de manuales y revisión fotográfica" width="100%"></a>
 
-**[Asistente de Piso](https://github.com/GERARDOBR01/Asistente-de-piso)** responde consultas desde el celular
-con la página y la lámina del manual. Tiene búsqueda local, modo con API opcional y revisión de fotos
-en el dispositivo. El código está separado en módulos ES sin bundler; las pruebas y una evaluación con
-manuales ficticios corren en CI. El repo documenta los resultados y sus límites.
-
-**Trabajo activo, octubre de 2026:** mejorar la efectividad del modo API, el diseño y la revisión fotográfica.
-Las métricas del [README del proyecto](https://github.com/GERARDOBR01/Asistente-de-piso#readme) corresponden
-a corpus y modos concretos; no son una garantía para cualquier manual. Código visible bajo PolyForm
-Noncommercial; el uso empresarial requiere licencia comercial escrita.
+**[Asistente de Piso](https://github.com/GERARDOBR01/Asistente-de-piso)** es mi proyecto más grande: una app que
+responde dudas leyendo manuales y te dice de qué página sacó la respuesta. Si no encuentra nada, dice «no sé» en
+lugar de inventar. Funciona desde el celular, con búsqueda local y un modo con API opcional.
+[Probarla aquí](https://gerardobr01.github.io/Asistente-de-piso/).
 
 <table><tr><td width="50%" valign="top">
 <a href="https://github.com/GERARDOBR01/veristack"><img src="assets/octubre-2026/veristack.svg" alt="Veristack: verificación visual con trazabilidad" width="100%"></a>
-<b><a href="https://github.com/GERARDOBR01/veristack">Veristack</a></b>: reglas duras por código, criterios delegados al modelo y NO_CALIFICA cuando falta evidencia. Suite offline y benchmark sintético con matriz de confusión; sus falsos positivos permanecen visibles.
+<b><a href="https://github.com/GERARDOBR01/veristack">Veristack</a></b>: un motor que revisa fotos contra reglas y da un veredicto con su razón. Lo que se puede verificar lo decide el código; el modelo solo interpreta. Si falta evidencia, no califica.
 </td><td width="50%" valign="top">
 <a href="https://github.com/GERARDOBR01/Grip"><img src="assets/octubre-2026/grip.svg" alt="Grip: finanzas personales locales" width="100%"></a>
-<b><a href="https://github.com/GERARDOBR01/Grip">Grip</a></b>: PWA de finanzas personales, lectura de avisos con confirmación y cálculo determinista en centavos. <a href="https://gerardobr01.github.io/grip/">Abrir la app</a>.
+<b><a href="https://github.com/GERARDOBR01/Grip">Grip</a></b>: app de finanzas personales. Le pasas la captura del aviso de tu banco y lee monto, fecha y comercio. Sin cuenta ni servidor. <a href="https://gerardobr01.github.io/grip/">Abrirla</a>.
 </td></tr></table>
 
-También construí **[CRM Certeza](https://github.com/GERARDOBR01/CRM-CLIENTES-)** (Python, Streamlit y SQLite:
-prioriza prospectos y prepara mensajes que una persona revisa) y **[Constancia](https://github.com/GERARDOBR01/MUDANZAS-FLASH-)**
-([demo](https://gerardobr01.github.io/MUDANZAS-FLASH-/): maqueta de registro de carga para mudanzas).
+Y otros más chicos: **[Constancia](https://github.com/GERARDOBR01/Grind001)** (acta de carga con sello de hora, en un solo HTML),
+**[CRM Certeza](https://github.com/GERARDOBR01/CRM-CLIENTES-)** (Python + Streamlit para saber a quién escribirle hoy) y
+**[Guardadito](https://github.com/GERARDOBR01/CAJITAS-)** (app de ahorro por cajitas).
 
-## Cómo trabajo
+Todos son proyectos personales y las demos usan datos de ejemplo.
 
-- El código decide lo verificable; el modelo interpreta solo lo que recibe.
-- Cada resultado debe mostrar su evidencia y declarar cuándo falta información.
-- Los cambios se contrastan con pruebas; los resultados se publican con sus límites.
-- Las demos públicas usan datos sintéticos. Son proyectos personales, sin implantación oficial atribuida a mi empleador.
+## Con qué trabajo
 
-**Herramientas:** JavaScript · Python · HTML/CSS · BM25 · integración de APIs de IA · SQLite · Streamlit · Git · Playwright.
+**JavaScript · Python · HTML/CSS · SQLite · Git · Playwright · APIs de IA** y, por la carrera, redes.
+
+Me gusta aprender haciendo: pruebas que corran solas, resultados con sus límites a la vista y código que otra persona pueda leer.
 
 ## Hablemos
 
-Si tu equipo necesita un junior que conecte el problema operativo con una herramienta que se pueda probar,
-**[puedes encontrarme en LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)**.
+Si quieres platicar de proyectos, de IA o de una oportunidad, escríbeme por
+**[LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)**.
 
 <details><summary><b>In English</b></summary>
 
-I build software and AI tools from problems I encounter on the retail floor in Guadalajara, Mexico.
-I am a Software and Networks Engineering student seeking my first full-time junior development or
-automation role. My main project, Asistente de Piso, combines local manual search, optional API-based
-answers with source pages, and on-device photo review. Its public repository includes a synthetic
-evaluation corpus, automated checks and documented limitations. These are personal projects.
+Hi, I'm Gerardo. I'm a Software and Networks Engineering student in Guadalajara, Mexico. I'm strengthening my
+software fundamentals while using AI tools, with a lot of enthusiasm, to build projects and technical tools.
+My biggest project is Asistente de Piso, an app that answers questions from manuals and cites the exact page.
+Open to junior opportunities in development, automation or networking.
 
-[Try the demo](https://gerardobr01.github.io/Asistente-de-piso/) · [Contact me on LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)
+[LinkedIn](https://www.linkedin.com/in/gerardo-barrera-dev/)
 
 </details>
