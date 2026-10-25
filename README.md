@@ -18,7 +18,7 @@ cita la página exacta y dice «no sé» en lugar de inventar. Búsqueda local, 
 <b><a href="https://github.com/GERARDOBR01/veristack">Veristack</a></b>: revisa fotos contra reglas y da un veredicto con su razón. Lo verificable lo decide el código; el modelo solo interpreta.
 </td><td width="50%" valign="top">
 <a href="https://github.com/GERARDOBR01/Grip"><picture><source media="(prefers-color-scheme: light)" srcset="assets/perfil-2026/grip-light.svg"><img src="assets/perfil-2026/grip.svg" alt="Grip: finanzas personales locales" width="100%"></picture></a>
-<b><a href="https://github.com/GERARDOBR01/Grip">Grip</a></b>: finanzas personales sin cuenta ni servidor. Le pasas la captura del aviso de tu banco y lo lee. <a href="https://gerardobr01.github.io/grip/">Abrirla</a>.
+<b><a href="https://github.com/GERARDOBR01/Grip">Grip</a></b>: finanzas personales sin cuenta ni servidor. Le pasas la captura del aviso de tu banco y lo lee. <a href="https://gerardobr01.github.io/Grip/">Abrirla</a>.
 </td></tr></table>
 
 Y más: **[Serie](https://github.com/GERARDOBR01/Grind001)** (entreno, comida y movilidad con test por cámara),
