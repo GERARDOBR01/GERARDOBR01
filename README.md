@@ -2,9 +2,9 @@
 
 ### Hola, soy Gerardo 👋
 
-Soy estudiante de **Ingeniería en Software y Redes** (UVM, Guadalajara). Estoy mejorando mis bases
-del software, y mientras tanto uso las herramientas de IA con muchas ganas para crear proyectos y
-herramientas técnicas: apps, utilidades, pruebas de ideas y todo lo que se me ocurra que valga la pena armar.
+Soy estudiante de **Ingeniería en Software y Redes** (Guadalajara) y me apasiona el avance de la IA.
+Estoy fortaleciendo mis bases del software y, mientras tanto, uso la IA a fondo para crear proyectos
+complejos y herramientas técnicas: apps, motores de verificación, utilidades y todo lo que valga la pena armar.
 
 No soy de los que esperan a saberlo todo para empezar. Construyo, me equivoco, lo arreglo y de ahí aprendo.
 Me gusta que lo que hago se pueda abrir, probar y entender, no solo que se vea bien.
@@ -13,7 +13,7 @@ Me gusta que lo que hago se pueda abrir, probar y entender, no solo que se vea b
 
 ## Lo que he armado
 
-<a href="https://github.com/GERARDOBR01/Asistente-de-piso"><img src="assets/octubre-2026/asistente.svg" alt="Asistente de Piso: consulta de manuales y revisión fotográfica" width="100%"></a>
+<a href="https://github.com/GERARDOBR01/Asistente-de-piso"><img src="assets/octubre-2026/asistente.svg" alt="Asistente de Piso: consulta de manuales y análisis de fotos" width="100%"></a>
 
 **[Asistente de Piso](https://github.com/GERARDOBR01/Asistente-de-piso)** es mi proyecto más grande: una app que
 responde dudas leyendo manuales y te dice de qué página sacó la respuesta. Si no encuentra nada, dice «no sé» en

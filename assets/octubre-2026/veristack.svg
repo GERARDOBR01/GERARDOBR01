@@ -6,6 +6,6 @@
 <g font-family="Segoe UI,Arial,sans-serif">
 <text x="102" y="54" font-size="19" letter-spacing="3" fill="#a5a8b3">02 · REGLAS Y EVIDENCIA</text>
 <text x="44" y="168" font-size="44" font-weight="700" letter-spacing="-2" fill="#f7f7fa">Veristack</text>
-<text x="44" y="244" font-size="24" fill="#b8bac4">Foto de exhibición → veredicto trazable.</text><text x="44" y="286" font-size="24" fill="#b8bac4">Reglas por código + interpretación delegada.</text><path d="M44 330H756" stroke="#30333c"/>
+<text x="44" y="244" font-size="24" fill="#b8bac4">Foto de evidencia → veredicto trazable.</text><text x="44" y="286" font-size="24" fill="#b8bac4">Reglas por código + interpretación delegada.</text><path d="M44 330H756" stroke="#30333c"/>
 <text x="44" y="368" font-size="18" fill="#ed7983">PYTHON · STREAMLIT · BENCHMARK PÚBLICO</text>
 </g></svg>
