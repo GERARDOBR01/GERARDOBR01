@@ -37,8 +37,8 @@ No son una garantía para cualquier caso. Las demos usan datos de ejemplo.
 ## Novedades
 
 <!--NOVEDADES:INICIO-->
-- **Guardadito** · [Lista para Play: capturas nuevas, privacidad al día y Android en el CI (v0.18)](https://github.com/GERARDOBR01/CAJITAS-/commit/9ac871832ac6a0ede7bf4f553f0c3d29e236d1a8) <sub>25 oct</sub>
-- **Guardadito** · [Cuentas seguras: código de un solo uso, una pareja por persona y nada se pierde (v0.17)](https://github.com/GERARDOBR01/CAJITAS-/commit/7cd0401174d633522194857e0c297059c6c44fd0) <sub>25 oct</sub>
+- **Guardadito** · [Lista para publicar: capturas y ficha de Play con la app nueva (v0.23)](https://github.com/GERARDOBR01/CAJITAS-/commit/3a2ee3ba60cbe24ffe565d50bfa054d964b69fab) <sub>26 oct</sub>
+- **Guardadito** · [Te entiende: el primer pasito, los montos chicos y un recordatorio amable (v0.22)](https://github.com/GERARDOBR01/CAJITAS-/commit/e53c89d52d1b2efa6808e0c6a898ef4e72503789) <sub>26 oct</sub>
 - **Serie** · [APK: barras del sistema en modo nativo](https://github.com/GERARDOBR01/Grind001/commit/72b5f7b5521579156425b97e3d7de61229633412) <sub>13 oct</sub>
 - **Serie** · [Emulador: verificar la interfaz con una señal en el logcat](https://github.com/GERARDOBR01/Grind001/commit/f29fc34c4ef12d44595e1b2de931fd482a33787e) <sub>13 oct</sub>
 - **Grip** · [Pantallas: reglas, plantillas, estado de cuenta y contra la quincena pasada](https://github.com/GERARDOBR01/Grip/commit/c2973ca75f5bfc6630186e5dc8daa43ad57c0833) <sub>13 oct</sub>
